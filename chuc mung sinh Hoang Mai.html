@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Happy Birthday Hoàng Mai 🎂</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        overflow-x: hidden;
+        background: linear-gradient(135deg, #19002e, #641b85, #ff82b2);
+        color: white;
+        font-family: "Trebuchet MS", Arial, sans-serif;
+        text-align: center;
+      }
+
+      .container {
+        position: relative;
+        z-index: 2;
+        padding: 70px 20px;
+      }
+
+      h1 {
+        font-size: clamp(32px, 7vw, 65px);
+        color: #fff0fa;
+        text-shadow:
+          0 0 15px #ff6bcb,
+          0 0 35px #ff9de2;
+        animation: glow 2s infinite alternate;
+      }
+
+      .name {
+        color: #ffbde9;
+        font-size: clamp(40px, 9vw, 85px);
+        margin-top: 15px;
+        animation: bounce 2s infinite;
+      }
+
+      @keyframes glow {
+        from {
+          text-shadow: 0 0 10px #ff6bcb;
+        }
+        to {
+          text-shadow:
+            0 0 35px #fff,
+            0 0 60px #ff6bcb;
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-12px);
+        }
+      }
+
+      .cake {
+        font-size: 110px;
+        margin: 25px 0;
+        animation: cake 2s infinite ease-in-out;
+      }
+
+      @keyframes cake {
+        0%,
+        100% {
+          transform: rotate(-5deg);
+        }
+        50% {
+          transform: rotate(5deg) scale(1.08);
+        }
+      }
+
+      .subtitle {
+        font-size: 21px;
+        margin: 20px auto;
+        max-width: 600px;
+        line-height: 1.7;
+      }
+
+      button {
+        background: linear-gradient(45deg, #ff62b0, #b56bff);
+        color: white;
+        border: 2px solid #ffd9f3;
+        border-radius: 35px;
+        padding: 15px 30px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 0 25px #ff83d0;
+        transition: 0.3s;
+      }
+
+      button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 40px #fff;
+      }
+
+      #message {
+        display: none;
+        max-width: 650px;
+        margin: 30px auto;
+        padding: 25px;
+        border: 2px solid #ffd6f3;
+        border-radius: 25px;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+        font-size: 20px;
+        line-height: 1.8;
+        animation: appear 1s ease;
+      }
+
+      @keyframes appear {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .balloon {
+        position: fixed;
+        bottom: -100px;
+        font-size: 40px;
+        z-index: 1;
+        animation: fly linear forwards;
+        pointer-events: none;
+      }
+
+      @keyframes fly {
+        to {
+          transform: translateY(-120vh) rotate(360deg);
+        }
+      }
+
+      .sparkle {
+        position: fixed;
+        top: -30px;
+        z-index: 1;
+        pointer-events: none;
+        animation: fall linear forwards;
+      }
+
+      @keyframes fall {
+        to {
+          transform: translateY(110vh) rotate(720deg);
+          opacity: 0;
+        }
+      }
+
+      footer {
+        margin-top: 35px;
+        font-size: 16px;
+        color: #ffe0f4;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>🎉 HAPPY BIRTHDAY 🎉</h1>
+
+      <div class="name">Hoàng Mai 💖</div>
+
+      <div class="cake">🎂</div>
+
+      <p class="subtitle">
+        Hôm nay là ngày đặc biệt của một người bạn vô cùng đáng quý! 🌸
+      </p>
+
+      <button onclick="openGift()">🎁 Mở món quà bí mật</button>
+
+      <div id="message">
+        <h2>💌 Gửi Hoàng Mai 💌</h2>
+        <br />
+
+        Chúc mừng sinh nhật Mai nha! 🎂💗
+        <br /><br />
+
+        Chúc bạn tuổi mới luôn vui vẻ, học giỏi, mạnh khỏe và gặp thật nhiều may
+        mắn. Mong rằng mọi điều ước của bạn đều trở thành hiện thực! ✨
+        <br /><br />
+
+        Cảm ơn Mai vì đã là một người bạn tuyệt vời. Mong tình bạn của chúng
+        mình sẽ luôn vui vẻ, chân thành và có thật nhiều kỷ niệm đẹp.
+        <br /><br />
+
+        <strong> Chúc Mai có một ngày sinh nhật thật đáng nhớ! 🎉💖 </strong>
+
+        <br /><br />
+        🌷 Best Friends Forever 🌷
+      </div>
+
+      <footer>Made with 💖 dành riêng cho Hoàng Mai</footer>
+    </div>
+
+    <script>
+      let opened = false;
+
+      function openGift() {
+        document.getElementById("message").style.display = "block";
+
+        if (!opened) {
+          opened = true;
+          createBalloons();
+          createFireworks();
+        }
+      }
+
+      function createBalloons() {
+        for (let i = 0; i < 25; i++) {
+          let balloon = document.createElement("div");
+
+          balloon.className = "balloon";
+          balloon.textContent = ["🎈", "💖", "🎉", "🌸"][
+            Math.floor(Math.random() * 4)
+          ];
+
+          balloon.style.left = Math.random() * 100 + "vw";
+          balloon.style.animationDuration = 5 + Math.random() * 6 + "s";
+
+          document.body.appendChild(balloon);
+
+          setTimeout(() => balloon.remove(), 12000);
+        }
+      }
+
+      function createFireworks() {
+        for (let i = 0; i < 100; i++) {
+          let sparkle = document.createElement("div");
+
+          sparkle.className = "sparkle";
+          sparkle.textContent = ["✨", "⭐", "💗", "🌟"][
+            Math.floor(Math.random() * 4)
+          ];
+
+          sparkle.style.left = Math.random() * 100 + "vw";
+          sparkle.style.animationDuration = 2 + Math.random() * 4 + "s";
+          sparkle.style.fontSize = 12 + Math.random() * 25 + "px";
+
+          document.body.appendChild(sparkle);
+
+          setTimeout(() => sparkle.remove(), 7000);
+        }
+      }
+
+      // Hiệu ứng lấp lánh tự động
+      setInterval(() => {
+        let star = document.createElement("div");
+
+        star.className = "sparkle";
+        star.textContent = "✨";
+        star.style.left = Math.random() * 100 + "vw";
+        star.style.animationDuration = "5s";
+
+        document.body.appendChild(star);
+
+        setTimeout(() => star.remove(), 5000);
+      }, 400);
+    </script>
+  </body>
+</html>
