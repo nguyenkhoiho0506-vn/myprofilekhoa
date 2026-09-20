@@ -1,0 +1,4392 @@
+<!doctype html>
+<html lang="vi" class="dark">
+  <head>
+    <script data-bard-client-injected="true">
+      (function (firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+      })(
+        '\n{\n  "apiKey": "AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY",\n  "authDomain": "bard-frontend.firebaseapp.com",\n  "projectId": "bard-frontend",\n  "storageBucket": "bard-frontend.firebasestorage.app",\n  "messagingSenderId": "175205271074",\n  "appId": "1:175205271074:web:2b7bd4d34d33bf38e6ec7b"\n}\n',
+        "eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIxMjgwNDY2NzEzNDg4NzkwMTExMSIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjX2EwMjFiZTliNzIyNzliYTFfaW5kZXguaHRtbC05MSJ9LCJleHAiOjE3ODk4OTE1MzMsImlhdCI6MTc4OTg4NzkzMywiYWxnIjoiUlMyNTYifQ.kkcvVWJ8jbjzdxV3xFTAPFvEBuYknHBkrRjUdjIHkyLu2GrMl2mPd1XCg_DPfwm4NWGhVAOCq5PeBrxGrcadCB6vYdYvLdnRjwrZqlzVFcTT9hdriqxZlvPYouMT0tgS1ZGlu8AVjzfAHmlsYEBpMtmzn6A7Nu47B8EZSuYlgPCBhK5qkC7hmF6XMnGLE_uWYxuXrRnAOJTW7KKH-DbDJ9sRBJDK9uTz48lRSFTig-W6ZKKUMkR79XfYfuWFqjij_35CUZsnhjs3PlqF5Itew466Z7imiSqfNvDoOs1mVC1XncO9wdvCBdewnc94744wHDwtGVhYfr0LxIhzjiLEgA",
+        "c_a021be9b72279ba1_index.html-91",
+      );
+    </script>
+    <script data-bard-client-injected="true">
+      document.addEventListener("input", (event) => {
+        if (
+          event.target &&
+          (event.target.isContentEditable ||
+            event.target.hasAttribute("contenteditable"))
+        ) {
+          const clonedDoc = document.cloneNode(true);
+          const injectedScripts = clonedDoc.querySelectorAll(
+            '[data-bard-client-injected="true"]',
+          );
+          injectedScripts.forEach((el) => el.remove());
+          window.parent.postMessage(
+            {
+              type: "inlineEdit",
+              html: "<!DOCTYPE html>\n" + clonedDoc.documentElement.outerHTML,
+            },
+            "*",
+          );
+        }
+      });
+    </script>
+    <script data-bard-client-injected="true">
+      (function () {
+        "use strict";
+        window.addEventListener("message", (a) => {
+          a.data &&
+            a.data.type === "SUPPLEMENTAL_DATA_UPDATE" &&
+            window.dispatchEvent(
+              new CustomEvent("supplementaldataupdate", {
+                detail: a.data.data,
+              }),
+            );
+        });
+      }).call(this);
+    </script>
+    <script data-bard-client-injected="true">
+      (function () {
+        const SCROLL_KEYS = new Set([
+          "ArrowUp",
+          "ArrowDown",
+          "ArrowLeft",
+          "ArrowRight",
+          " ",
+          "Spacebar",
+          "PageUp",
+          "PageDown",
+          "Home",
+          "End",
+        ]);
+        const HORIZONTAL_KEYS = new Set(["ArrowLeft", "ArrowRight"]);
+
+        function isTextEntryTarget(target) {
+          if (!target) return false;
+          const tagName = target.tagName;
+          return (
+            tagName === "INPUT" ||
+            tagName === "TEXTAREA" ||
+            tagName === "SELECT" ||
+            target.isContentEditable === true
+          );
+        }
+
+        // An element absorbs the key only if it both overflows on the axis being
+        // scrolled and is configured to scroll on that axis. The cheap dimension
+        // test runs first because getComputedStyle forces a style recalc, and this
+        // runs on every keypress. Each axis is read from its own longhand: the
+        // 'overflow' shorthand serializes as two values when the axes differ, which
+        // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+        function canScroll(node, horizontal) {
+          const overflows = horizontal
+            ? node.scrollWidth > node.clientWidth
+            : node.scrollHeight > node.clientHeight;
+          if (!overflows) return false;
+          const style = window.getComputedStyle(node);
+          const overflow = horizontal ? style.overflowX : style.overflowY;
+          return overflow === "auto" || overflow === "scroll";
+        }
+
+        // Walks up from the event target so nested scrollers keep their behavior.
+        // <body> is included because pages that pin the root height make it the
+        // scroll container.
+        function hasScrollableAncestor(target, horizontal) {
+          let node = target;
+          while (node && node !== document.documentElement) {
+            if (canScroll(node, horizontal)) return true;
+            node = node.parentElement;
+          }
+          return false;
+        }
+
+        function rootCanScroll(horizontal) {
+          const scroller =
+            document.scrollingElement || document.documentElement;
+          if (!scroller) return false;
+          // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+          return horizontal
+            ? scroller.scrollWidth > window.innerWidth + 1
+            : scroller.scrollHeight > window.innerHeight + 1;
+        }
+
+        window.addEventListener(
+          "keydown",
+          function (event) {
+            if (!SCROLL_KEYS.has(event.key)) return;
+            if (event.defaultPrevented) return;
+            // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+            // reserved for shortcuts, so none of them are scroll intent.
+            if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+            const target = event.target;
+            if (isTextEntryTarget(target)) return;
+
+            // Anything that can still absorb the scroll gets to keep it.
+            const horizontal = HORIZONTAL_KEYS.has(event.key);
+            if (rootCanScroll(horizontal)) return;
+            if (hasScrollableAncestor(target, horizontal)) return;
+
+            event.preventDefault();
+          },
+          { capture: true, passive: false },
+        );
+      })();
+    </script>
+    <script data-bard-client-injected="true">
+      (function () {
+        // Ensure this script is executed only once
+        if (window.firebaseAuthBridgeScriptLoaded) {
+          return;
+        }
+        window.firebaseAuthBridgeScriptLoaded = true;
+
+        let nextTokenPromiseId = 0;
+
+        // Stores { resolve, reject } for ongoing token requests
+        const pendingTokenPromises = {};
+
+        // Listen for messages from the Host Application
+        window.addEventListener("message", function (event) {
+          const messageData = event.data;
+
+          if (
+            messageData &&
+            messageData.type === "RESOLVE_NEW_FIREBASE_TOKEN"
+          ) {
+            const { success, token, error, promiseId } = messageData ?? {};
+            if (pendingTokenPromises[promiseId]) {
+              if (success) {
+                pendingTokenPromises[promiseId].resolve(token);
+              } else {
+                pendingTokenPromises[promiseId].reject(
+                  new Error(error || "Token refresh failed from host."),
+                );
+              }
+              delete pendingTokenPromises[promiseId];
+            }
+          }
+        });
+
+        // Expose a function for the Generated App to request a new Firebase token
+        window.requestNewFirebaseToken = function () {
+          const currentPromiseId = nextTokenPromiseId++;
+          const promise = new Promise((resolve, reject) => {
+            pendingTokenPromises[currentPromiseId] = { resolve, reject };
+          });
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage(
+              {
+                type: "REQUEST_NEW_FIREBASE_TOKEN",
+                promiseId: currentPromiseId,
+              },
+              "*",
+            );
+          } else {
+            pendingTokenPromises[currentPromiseId].reject(
+              new Error("No parent window to request token from."),
+            );
+            delete pendingTokenPromises[currentPromiseId];
+          }
+          return promise;
+        };
+      })();
+    </script>
+    <script data-bard-client-injected="true">
+      let realOriginalGetUserMedia = null;
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(
+          navigator.mediaDevices,
+        );
+      }
+
+      (function () {
+        if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+          try {
+            Object.defineProperty(
+              navigator.mediaDevices.__proto__,
+              "getUserMedia",
+              {
+                get: function () {
+                  return undefined; // Or throw an error
+                },
+                configurable: false,
+              },
+            );
+          } catch (error) {
+            console.error("Error defining prototype getter:", error);
+          }
+        }
+      })();
+
+      (function () {
+        const pendingMediaResolvers = {};
+        let nextMediaPromiseId = 0;
+
+        function requestMediaPermissions(constraints) {
+          const mediaPromiseId = nextMediaPromiseId++;
+          const promise = new Promise((resolve, reject) => {
+            pendingMediaResolvers[mediaPromiseId] = (granted) => {
+              delete pendingMediaResolvers[mediaPromiseId];
+              resolve(granted);
+            };
+          });
+
+          window.parent.postMessage(
+            {
+              type: "requestMediaPermission",
+              constraints: constraints,
+              promiseId: mediaPromiseId,
+            },
+            "*",
+          );
+
+          return promise;
+        }
+
+        let originalGetUserMedia = realOriginalGetUserMedia;
+
+        function interceptGetUserMedia() {
+          if (navigator.mediaDevices) {
+            Object.defineProperty(navigator.mediaDevices, "getUserMedia", {
+              value: function (constraints) {
+                return requestMediaPermissions(constraints).then((granted) => {
+                  if (granted) {
+                    if (originalGetUserMedia) {
+                      return originalGetUserMedia(constraints);
+                    } else {
+                      throw new Error("Original getUserMedia not available.");
+                    }
+                  } else {
+                    throw new DOMException(
+                      "Permission denied",
+                      "NotAllowedError",
+                    );
+                  }
+                });
+              },
+              writable: false,
+              configurable: false,
+            });
+          }
+        }
+
+        interceptGetUserMedia();
+
+        const observer = new MutationObserver(function (
+          mutationsList,
+          observer,
+        ) {
+          for (const mutation of mutationsList) {
+            if (
+              mutation.type === "reconfigured" &&
+              mutation.name === "getUserMedia" &&
+              mutation.object === navigator.mediaDevices
+            ) {
+              interceptGetUserMedia();
+            } else if (
+              mutation.type === "attributes" &&
+              mutation.attributeName === "getUserMedia" &&
+              mutation.target === navigator.mediaDevices
+            ) {
+              interceptGetUserMedia();
+            } else if (mutation.type === "childList" && mutation.addedNodes) {
+              mutation.addedNodes.forEach((node) => {
+                if (node === navigator.mediaDevices) {
+                  interceptGetUserMedia();
+                }
+              });
+            }
+          }
+        });
+
+        function interceptSpeechRecognition() {
+          if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+            return;
+          }
+
+          const OriginalSpeechRecognition =
+            window.SpeechRecognition || window.webkitSpeechRecognition;
+
+          const SpeechRecognitionWrapper = function (...args) {
+            const recognizer = new OriginalSpeechRecognition(...args);
+            const originalStart = recognizer.start.bind(recognizer);
+
+            recognizer.start = function () {
+              requestMediaPermissions({ audio: true }).then((granted) => {
+                if (granted) {
+                  originalStart();
+                } else {
+                  const errorEvent = new SpeechRecognitionErrorEvent("error");
+                  errorEvent.error = "not-allowed"; // This is the standard error for permission denial.
+                  recognizer.dispatchEvent(errorEvent);
+                }
+              });
+            };
+
+            return recognizer;
+          };
+
+          SpeechRecognitionWrapper.prototype =
+            OriginalSpeechRecognition.prototype;
+          SpeechRecognitionWrapper.prototype.constructor =
+            SpeechRecognitionWrapper;
+
+          if (window.SpeechRecognition) {
+            window.SpeechRecognition = SpeechRecognitionWrapper;
+          }
+          if (window.webkitSpeechRecognition) {
+            window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+          }
+        }
+
+        interceptSpeechRecognition();
+
+        window.addEventListener("message", function (event) {
+          if (event.data) {
+            if (event.data.type === "resolveMediaPermission") {
+              const { promiseId, granted } = event.data;
+              if (pendingMediaResolvers[promiseId]) {
+                pendingMediaResolvers[promiseId](granted);
+              }
+            }
+          }
+        });
+      })();
+    </script>
+    <script
+      ws-interception-config='{"parentOrigin":"https://gemini.google.com","proxiedDomains":[]}'
+      data-bard-client-injected="true"
+    >
+      (function () {
+        "use strict";
+        var u =
+          typeof Object.defineProperties == "function"
+            ? Object.defineProperty
+            : function (b, d, e) {
+                if (b == Array.prototype || b == Object.prototype) return b;
+                b[d] = e.value;
+                return b;
+              };
+        function v(b) {
+          b = [
+            "object" == typeof globalThis && globalThis,
+            b,
+            "object" == typeof window && window,
+            "object" == typeof self && self,
+            "object" == typeof global && global,
+          ];
+          for (var d = 0; d < b.length; ++d) {
+            var e = b[d];
+            if (e && e.Math == Math) return e;
+          }
+          throw Error("Cannot find global object");
+        }
+        var w = v(this);
+        function y(b, d) {
+          if (d)
+            a: {
+              var e = w;
+              b = b.split(".");
+              for (var h = 0; h < b.length - 1; h++) {
+                var k = b[h];
+                if (!(k in e)) break a;
+                e = e[k];
+              }
+              b = b[b.length - 1];
+              h = e[b];
+              d = d(h);
+              d != h &&
+                d != null &&
+                u(e, b, { configurable: !0, writable: !0, value: d });
+            }
+        }
+        function z(b) {
+          function d(h) {
+            return b.next(h);
+          }
+          function e(h) {
+            return b.throw(h);
+          }
+          return new Promise(function (h, k) {
+            function m(n) {
+              n.done
+                ? h(n.value)
+                : Promise.resolve(n.value).then(d, e).then(m, k);
+            }
+            m(b.next());
+          });
+        }
+        y("globalThis", function (b) {
+          return b || w;
+        }); /*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+        function A(b, d) {
+          function e() {}
+          e.prototype = d.prototype;
+          b.j = d.prototype;
+          b.prototype = new e();
+          b.prototype.constructor = b;
+          b.h = function (h, k, m) {
+            for (
+              var n = Array(arguments.length - 2), p = 2;
+              p < arguments.length;
+              p++
+            )
+              n[p - 2] = arguments[p];
+            return d.prototype[k].apply(h, n);
+          };
+        }
+        function B(b, d, e = "*") {
+          function h(a) {
+            if (typeof a === "string") return F.encode(a).buffer;
+            if (a instanceof ArrayBuffer) return a.slice(0);
+            if (ArrayBuffer.isView(a))
+              return a.buffer.slice(a.byteOffset, a.byteOffset + a.byteLength);
+            throw Error("Invalid data type");
+          }
+          function k(a) {
+            a = h(a);
+            var f = { type: "send", data: new Uint8Array(a) },
+              g;
+            (g = r) == null || g.postMessage(f, [a]);
+          }
+          function m() {
+            if (!r) throw Error("Data port not captured yet.");
+            r.onmessage = (a) => {
+              if (a.data.type === "message") {
+                a = new MessageEvent("message", {
+                  data: G.decode(a.data.data),
+                });
+                let f;
+                (f = c.onmessage) == null || f.call(c, a);
+                c.dispatchEvent(a);
+              }
+            };
+          }
+          function n() {
+            if (!t) throw Error("Control port not captured yet.");
+            t.onmessage = (a) => {
+              switch (a.data.type) {
+                case "open":
+                  l = 1;
+                  var f = new Event("open"),
+                    g;
+                  (g = c.onopen) == null || g.call(c, f);
+                  c.dispatchEvent(f);
+                  q.forEach((H) => {
+                    k(H);
+                  });
+                  q = [];
+                  break;
+                case "close":
+                  g = a.data;
+                  l = 3;
+                  g = new CloseEvent("close", {
+                    code: g.code,
+                    reason: g.reason,
+                    wasClean: g.wasClean,
+                  });
+                  (f = c.onclose) == null || f.call(c, g);
+                  c.dispatchEvent(g);
+                  break;
+                case "error":
+                  l = 3;
+                  f = new Event("error");
+                  let x;
+                  (x = c.onerror) == null || x.call(c, f);
+                  c.dispatchEvent(f);
+              }
+            };
+          }
+          function p(a) {
+            return z(
+              (function* () {
+                var f = new MessageChannel();
+                t = f.port1;
+                var g = new MessageChannel();
+                r = g.port1;
+                n();
+                m();
+                window.parent.postMessage(
+                  {
+                    type: "websocket_open",
+                    portOrdering: ["control", "data"],
+                    url: b,
+                    protocols: a || [],
+                    connectionId: I,
+                  },
+                  e,
+                  [f.port2, g.port2],
+                );
+              })(),
+            );
+          }
+          var c = Reflect.construct(EventTarget, [], new.target);
+          c.CONNECTING = 0;
+          c.OPEN = 1;
+          c.CLOSING = 2;
+          c.CLOSED = 3;
+          c.url = b;
+          c.binaryType = "arraybuffer";
+          c.protocol = "";
+          c.i = "";
+          var l = 0,
+            t = null,
+            r = null,
+            q = [],
+            F = new TextEncoder(),
+            G = new TextDecoder();
+          c.onopen = null;
+          c.onmessage = null;
+          c.onclose = null;
+          c.onerror = null;
+          Object.defineProperty(c, "readyState", {
+            get: () => l,
+            enumerable: !0,
+            configurable: !0,
+          });
+          Object.defineProperty(c, "bufferedAmount", {
+            get: () => {
+              var a = 0;
+              q.forEach((f) => {
+                a += typeof f === "string" ? f.length : f.byteLength;
+              });
+              return a;
+            },
+            enumerable: !0,
+            configurable: !0,
+          });
+          var I = (function () {
+            var a;
+            return ((a = globalThis.crypto) == null ? 0 : a.randomUUID)
+              ? globalThis.crypto.randomUUID()
+              : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (f) => {
+                  var g = (Math.random() * 16) | 0;
+                  return (f === "x" ? g : (g & 3) | 8).toString(16);
+                });
+          })();
+          c.send = (a) => {
+            if (l === 1)
+              a instanceof Blob
+                ? a.arrayBuffer().then((f) => {
+                    k(f);
+                  })
+                : k(a);
+            else if (l === 0)
+              if (typeof a === "string") q.push(a);
+              else if (a instanceof ArrayBuffer || ArrayBuffer.isView(a))
+                q.push(h(a));
+              else
+                throw Error(
+                  "Sending Blob is not supported before the connection is open.",
+                );
+            else
+              console.debug(
+                "WebSocket send called in CLOSING or CLOSED state; ignored.",
+              );
+          };
+          c.close = (a = 1e3, f = "") => {
+            if (l !== 2 && l !== 3) {
+              l = 2;
+              a = { type: "close", code: a, reason: f, wasClean: a === 1e3 };
+              var g;
+              (g = t) == null || g.postMessage(a);
+            }
+          };
+          Promise.resolve().then(() => p(d));
+          return c;
+        }
+        A(B, EventTarget);
+        var C = document.currentScript,
+          D = C == null ? void 0 : C.getAttribute("ws-interception-config");
+        if (!D)
+          throw Error(
+            "WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.",
+          );
+        var E = JSON.parse(D);
+        if (!E.parentOrigin || typeof E.parentOrigin !== "string")
+          throw Error(
+            "WebSocket Interceptor: Invalid parentOrigin in ws-interception-config",
+          );
+        (function (b) {
+          var d = Object.getOwnPropertyDescriptor(window, "WebSocket");
+          if (!d || d.writable || d.configurable)
+            ((d = Object.assign(
+              function (e, h) {
+                try {
+                  let k = new URL(e).hostname;
+                  if (
+                    b.proxiedDomains.some((m) => k === m || k.endsWith(`.${m}`))
+                  )
+                    return new B(e, h, b.parentOrigin);
+                } catch (k) {
+                  throw (
+                    window.parent.postMessage(
+                      {
+                        type: "websocket_blocked",
+                        url: e,
+                        reason: "blocked_invalid_url",
+                      },
+                      b.parentOrigin,
+                    ),
+                    new DOMException(
+                      `WebSocket connection to '${e}' is not allowed in Canvas.`,
+                      "SecurityError",
+                    )
+                  );
+                }
+                window.parent.postMessage(
+                  {
+                    type: "websocket_blocked",
+                    url: e,
+                    reason: "blocked_domain_not_allowlisted",
+                  },
+                  b.parentOrigin,
+                );
+                throw new DOMException(
+                  `WebSocket connection to '${e}' is not allowed in Canvas.`,
+                  "SecurityError",
+                );
+              },
+              { CONNECTING: 0, OPEN: 1, CLOSING: 2, CLOSED: 3 },
+            )),
+              Object.defineProperty(window, "WebSocket", {
+                value: d,
+                writable: !1,
+                configurable: !1,
+              }));
+        })({
+          proxiedDomains: E.proxiedDomains || [],
+          parentOrigin: E.parentOrigin,
+        });
+      }).call(this);
+    </script>
+    <script data-bard-client-injected="true">
+      (function (modelInformation) {
+        const originalFetch = window.fetch;
+        // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+        let googleLlmBaseApiUrls = [
+          "https://generativelanguage.googleapis.com/v1beta/models/" +
+            modelInformation.textModelName +
+            ":streamGenerateContent",
+          "https://generativelanguage.googleapis.com/v1beta/models/" +
+            modelInformation.textModelName +
+            ":generateContent",
+          "https://generativelanguage.googleapis.com/v1beta/models/" +
+            modelInformation.imageModelName +
+            ":predict",
+          "https://generativelanguage.googleapis.com/v1beta/models/" +
+            modelInformation.imageModelName +
+            ":predictLongRunning",
+          "https://generativelanguage.googleapis.com/v1beta/models/" +
+            modelInformation.imageEditModelName +
+            ":generateContent",
+          "https://generativelanguage.googleapis.com/v1beta/models/" +
+            modelInformation.imageTransformModelName +
+            ":generateContent",
+          "https://generativelanguage.googleapis.com/v1beta/models/" +
+            modelInformation.videoModelName +
+            ":predict",
+          "https://generativelanguage.googleapis.com/v1beta/models/" +
+            modelInformation.videoModelName +
+            ":predictLongRunning",
+          "https://generativelanguage.googleapis.com/v1beta/models/" +
+            modelInformation.ttsModelName +
+            ":generateContent",
+        ];
+        modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+          googleLlmBaseApiUrls.push(
+            "https://generativelanguage.googleapis.com/v1beta/models/" +
+              modelName +
+              ":streamGenerateContent",
+            "https://generativelanguage.googleapis.com/v1beta/models/" +
+              modelName +
+              ":generateContent",
+          );
+        });
+        modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+          googleLlmBaseApiUrls.push(
+            "https://generativelanguage.googleapis.com/v1beta/models/" +
+              modelName +
+              ":predict",
+            "https://generativelanguage.googleapis.com/v1beta/models/" +
+              modelName +
+              ":predictLongRunning",
+            "https://generativelanguage.googleapis.com/v1beta/models/" +
+              modelName +
+              ":generateContent",
+            "https://generativelanguage.googleapis.com/v1beta/models/" +
+              modelName +
+              ":streamGenerateContent",
+          );
+        });
+        modelInformation.deprecatedGenerateImageModelNames.forEach(
+          (modelName) => {
+            googleLlmBaseApiUrls.push(
+              "https://generativelanguage.googleapis.com/v1beta/models/" +
+                modelName +
+                ":generateContent",
+              "https://generativelanguage.googleapis.com/v1beta/models/" +
+                modelName +
+                ":streamGenerateContent",
+            );
+          },
+        );
+        modelInformation.deprecatedImageTransformModelNames.forEach(
+          (modelName) => {
+            googleLlmBaseApiUrls.push(
+              "https://generativelanguage.googleapis.com/v1beta/models/" +
+                modelName +
+                ":generateContent",
+              "https://generativelanguage.googleapis.com/v1beta/models/" +
+                modelName +
+                ":streamGenerateContent",
+            );
+          },
+        );
+
+        const pendingFetchResolvers = {};
+        let nextPromiseId = 0;
+
+        function handleStringInput(input, optionsArgument) {
+          const actualUrl = input;
+          const fetchCallArgs = [actualUrl, optionsArgument];
+          const effectiveOptions = optionsArgument || {};
+          const bodyForApiKeyCheck = effectiveOptions.body;
+          const bodyForPostMessage = effectiveOptions.body;
+          return {
+            actualUrl,
+            fetchCallArgs,
+            effectiveOptions,
+            bodyForApiKeyCheck,
+            bodyForPostMessage,
+          };
+        }
+
+        function handleRequestInput(input, optionsArgument) {
+          const actualUrl = input.url;
+          const fetchCallArgs = [input, optionsArgument];
+          const effectiveOptions = {
+            method: input.method,
+            headers: new Headers(input.headers),
+          };
+          let bodyForApiKeyCheck;
+          let bodyForPostMessage;
+
+          if (optionsArgument) {
+            if (optionsArgument.method)
+              effectiveOptions.method = optionsArgument.method;
+            if (optionsArgument.headers)
+              effectiveOptions.headers = new Headers(optionsArgument.headers);
+            if ("body" in optionsArgument) {
+              bodyForApiKeyCheck = optionsArgument.body;
+              bodyForPostMessage = optionsArgument.body;
+            } else {
+              bodyForApiKeyCheck = undefined;
+              bodyForPostMessage = input.body;
+            }
+          } else {
+            bodyForApiKeyCheck = undefined;
+            bodyForPostMessage = input.body;
+          }
+          return {
+            actualUrl,
+            fetchCallArgs,
+            effectiveOptions,
+            bodyForApiKeyCheck,
+            bodyForPostMessage,
+          };
+        }
+
+        window.fetch = function (input, optionsArgument) {
+          let actualUrl;
+          let fetchCallArgs;
+          let effectiveOptions = {};
+          let bodyForApiKeyCheck;
+          let bodyForPostMessage;
+
+          if (typeof input === "string") {
+            ({
+              actualUrl,
+              fetchCallArgs,
+              effectiveOptions,
+              bodyForApiKeyCheck,
+              bodyForPostMessage,
+            } = handleStringInput(input, optionsArgument));
+          } else if (input instanceof Request) {
+            ({
+              actualUrl,
+              fetchCallArgs,
+              effectiveOptions,
+              bodyForApiKeyCheck,
+              bodyForPostMessage,
+            } = handleRequestInput(input, optionsArgument));
+          } else {
+            return originalFetch.apply(window, [input, optionsArgument]);
+          }
+
+          effectiveOptions.method = effectiveOptions.method || "GET";
+          if (!effectiveOptions.headers) {
+            effectiveOptions.headers = new Headers();
+          }
+
+          if (
+            typeof actualUrl === "string" &&
+            googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))
+          ) {
+            let apiKeyIsNull = true;
+
+            const regex = new RegExp("models/([^:]+)");
+            const modelNameMatch = actualUrl.match(regex);
+            const modelName = modelNameMatch
+              ? modelNameMatch[1]
+              : "unspecified";
+
+            try {
+              const urlObject = new URL(actualUrl); // Use URL object for robust parsing
+              const apiKeyParam = urlObject.searchParams.get("key");
+              if (apiKeyParam) {
+                apiKeyIsNull = false;
+              }
+            } catch (e) {
+              // Continue checks even if URL parsing fails
+            }
+
+            if (apiKeyIsNull && effectiveOptions.headers) {
+              const h = new Headers(effectiveOptions.headers);
+              const apiKeyHeaderValue =
+                h.get("X-API-Key") || h.get("x-api-key");
+              if (apiKeyHeaderValue) {
+                apiKeyIsNull = false;
+                return originalFetch.apply(window, fetchCallArgs);
+              }
+            }
+
+            if (
+              apiKeyIsNull &&
+              effectiveOptions.method &&
+              ["POST", "PUT", "PATCH"].includes(
+                effectiveOptions.method.toUpperCase(),
+              ) &&
+              typeof bodyForApiKeyCheck === "string"
+            ) {
+              try {
+                const bodyData = JSON.parse(bodyForApiKeyCheck);
+                if (bodyData && bodyData.apiKey) {
+                  apiKeyIsNull = false;
+                  return originalFetch.apply(window, fetchCallArgs);
+                }
+              } catch (e) {
+                // Ignore JSON parsing errors
+              }
+            }
+
+            if (apiKeyIsNull) {
+              const promiseId = nextPromiseId++;
+              const promise = new Promise((resolve) => {
+                pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+                  delete pendingFetchResolvers[promiseId];
+                  resolve(resolvedResponse);
+                };
+              });
+
+              let serializedBodyForPostMessage;
+              if (
+                typeof bodyForPostMessage === "string" ||
+                bodyForPostMessage == null
+              ) {
+                serializedBodyForPostMessage = bodyForPostMessage;
+              } else if (bodyForPostMessage instanceof ReadableStream) {
+                serializedBodyForPostMessage = null;
+              } else {
+                try {
+                  serializedBodyForPostMessage =
+                    JSON.stringify(bodyForPostMessage);
+                } catch (e) {
+                  serializedBodyForPostMessage = null;
+                }
+              }
+
+              const messageOptions = {
+                method: effectiveOptions.method,
+                headers: Object.fromEntries(
+                  new Headers(effectiveOptions.headers).entries(),
+                ),
+                body: serializedBodyForPostMessage,
+              };
+
+              window.parent.postMessage(
+                {
+                  type: "requestFetch",
+                  url: actualUrl,
+                  modelName: modelName,
+                  options: messageOptions,
+                  promiseId: promiseId,
+                },
+                "*",
+              );
+
+              return promise;
+            }
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+          return originalFetch.apply(window, fetchCallArgs);
+        };
+
+        window.addEventListener("message", function (event) {
+          if (event.data && event.data.type === "resolveFetch") {
+            const { promiseId, response } = event.data;
+            if (pendingFetchResolvers[promiseId]) {
+              try {
+                const reconstructedResponse = new Response(response.body, {
+                  status: response.status,
+                  statusText: response.statusText,
+                  headers: new Headers(response.headers),
+                });
+                pendingFetchResolvers[promiseId](reconstructedResponse);
+              } catch (error) {
+                pendingFetchResolvers[promiseId](
+                  new Response(null, {
+                    status: 500,
+                    statusText: "Interceptor Response Reconstruction Error",
+                  }),
+                );
+              }
+            }
+          }
+        });
+      })({
+        textModelName: "gemini-3-flash-preview",
+        imageModelName: "imagen-4.0-generate-001",
+        imageEditModelName: "gemini-3.1-flash-image",
+        imageTransformModelName: "gemini-3-pro-image",
+        videoModelName: "veo-2.0-generate-001",
+        ttsModelName: "gemini-2.5-flash-preview-tts",
+        deprecatedTextModelNames: [
+          "gemini-2.0-flash",
+          "gemini-2.5-flash",
+          "gemini-2.5-flash-preview-04-17",
+          "gemini-2.5-flash-preview-05-20",
+          "gemini-2.5-flash-preview-09-2025",
+        ],
+        deprecatedImageModelNames: [
+          "imagen-3.0-generate-001",
+          "imagen-3.0-generate-002",
+        ],
+        deprecatedGenerateImageModelNames: [
+          "gemini-2.5-flash-image-preview",
+          "gemini-2.5-flash-image",
+          "gemini-3.1-flash-image-preview",
+        ],
+        deprecatedImageTransformModelNames: [
+          "gemini-3-pro-image-preview-11-2025",
+        ],
+      });
+    </script>
+    <script data-bard-client-injected="true">
+      (function () {
+        "use strict";
+        function a() {
+          window.parent.postMessage({ type: "interaction" }, "*");
+        }
+        window.addEventListener("click", a, { capture: !0, passive: !0 });
+        window.addEventListener("touchstart", a, { capture: !0, passive: !0 });
+        window.addEventListener("keydown", a, { capture: !0, passive: !0 });
+      }).call(this);
+    </script>
+    <script data-bard-client-injected="true">
+      (function () {
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+
+        /**
+         * Normalizes an error event or a promise rejection reason into a structured error object.
+         * @param {*} errorEventOrReason The error object or reason.
+         * @return {object} Structured error data { message, name, stack }.
+         */
+        function getErrorObject(errorEventOrReason) {
+          if (errorEventOrReason instanceof Error) {
+            return {
+              message: errorEventOrReason.message,
+              name: errorEventOrReason.name,
+              stack: errorEventOrReason.stack,
+            };
+          }
+          // Fallback for non-Error objects.
+          try {
+            return {
+              message: JSON.stringify(errorEventOrReason),
+              name: "UnknownErrorType",
+              stack: null,
+            };
+          } catch (e) {
+            return {
+              message: String(errorEventOrReason),
+              name: "UnknownErrorTypeNonStringifiable",
+              stack: null,
+            };
+          }
+        }
+
+        /**
+         * Converts an array of arguments (from log/error) into a single string.
+         * Handles Error objects specially to include their message and stack.
+         * @param {Array<*>} args - Arguments passed to console methods.
+         * @return {string} A string representation of the arguments.
+         */
+        function stringifyArgs(args) {
+          return args
+            .map((arg) => {
+              if (arg instanceof Error) {
+                const { message, stack } = arg;
+                return `Error: ${message}${stack ? "\nStack: " + stack : ""}`;
+              }
+              if (typeof arg === "object" && arg !== null) {
+                try {
+                  return JSON.stringify(arg);
+                } catch (error) {
+                  return "[Circular Object]";
+                }
+              } else {
+                return String(arg);
+              }
+            })
+            .join(" ");
+        }
+
+        console.log = function (...args) {
+          const logString = stringifyArgs(args);
+          window.parent.postMessage({ type: "log", message: logString }, "*");
+          originalConsoleLog.apply(console, args);
+        };
+
+        console.error = function (...args) {
+          let errorData;
+          if (args.length > 0 && args[0] instanceof Error) {
+            const err = args[0];
+            // If the first arg is an Error, capture its details.
+            errorData = {
+              type: "error",
+              source: "CONSOLE_ERROR",
+              ...getErrorObject(err),
+              rawArgsString: stringifyArgs(args.slice(1)),
+              timestamp: new Date().toISOString(),
+            };
+          } else {
+            // If not an Error object, treat all args as a general error message.
+            errorData = {
+              type: "error",
+              source: "CONSOLE_ERROR",
+              message: stringifyArgs(args),
+              name: "ConsoleLoggedError",
+              stack: null,
+              timestamp: new Date().toISOString(),
+            };
+          }
+          window.parent.postMessage(errorData, "*");
+          originalConsoleError.apply(console, args);
+        };
+
+        // Listen for global unhandled synchronous errors.
+        window.addEventListener("error", function (event) {
+          const errorDetails = event.error
+            ? getErrorObject(event.error)
+            : {
+                message: event.message,
+                name: "GlobalError",
+                stack: null,
+                filename: event.filename,
+                lineno: event.lineno,
+                colno: event.colno,
+              };
+
+          window.parent.postMessage(
+            {
+              type: "error",
+              source: "global",
+              ...errorDetails,
+              message: errorDetails.message || event.message,
+              timestamp: new Date().toISOString(),
+            },
+            "*",
+          );
+        });
+
+        // Listen for unhandled promise rejections (asynchronous errors).
+        window.addEventListener("unhandledrejection", function (event) {
+          const errorDetails = getErrorObject(event.reason);
+
+          window.parent.postMessage(
+            {
+              type: "error",
+              source: "unhandledrejection",
+              ...errorDetails,
+              message: errorDetails.message || "Unhandled Promise Rejection",
+              timestamp: new Date().toISOString(),
+            },
+            "*",
+          );
+        });
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NBA Masterclass - Kỹ Năng &amp; Chiến Thuật Bóng Rổ Đỉnh Cao</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              nba: {
+                blue: "#17408B",
+                red: "#C9082A",
+                gold: "#FDB927",
+                dark: "#0B0E14",
+                card: "#121824",
+                border: "#1F293D",
+                accent: "#FF4500",
+              },
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <!-- FontAwesome icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #0b0e14;
+        color: #e2e8f0;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #0b0e14;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #1f293d;
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #374151;
+      }
+      .gradient-text {
+        background: linear-gradient(135deg, #ff4500 0%, #fdb927 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .glow-effect {
+        box-shadow: 0 0 25px rgba(255, 69, 0, 0.15);
+      }
+      .court-bg {
+        background-color: #1a2233;
+        background-image: radial-gradient(#2d3952 1px, transparent 0);
+        background-size: 20px 20px;
+      }
+    </style>
+    <style>
+      *,
+      ::before,
+      ::after {
+        --tw-border-spacing-x: 0;
+        --tw-border-spacing-y: 0;
+        --tw-translate-x: 0;
+        --tw-translate-y: 0;
+        --tw-rotate: 0;
+        --tw-skew-x: 0;
+        --tw-skew-y: 0;
+        --tw-scale-x: 1;
+        --tw-scale-y: 1;
+        --tw-pan-x: ;
+        --tw-pan-y: ;
+        --tw-pinch-zoom: ;
+        --tw-scroll-snap-strictness: proximity;
+        --tw-gradient-from-position: ;
+        --tw-gradient-via-position: ;
+        --tw-gradient-to-position: ;
+        --tw-ordinal: ;
+        --tw-slashed-zero: ;
+        --tw-numeric-figure: ;
+        --tw-numeric-spacing: ;
+        --tw-numeric-fraction: ;
+        --tw-ring-inset: ;
+        --tw-ring-offset-width: 0px;
+        --tw-ring-offset-color: #fff;
+        --tw-ring-color: rgb(59 130 246 / 0.5);
+        --tw-ring-offset-shadow: 0 0 #0000;
+        --tw-ring-shadow: 0 0 #0000;
+        --tw-shadow: 0 0 #0000;
+        --tw-shadow-colored: 0 0 #0000;
+        --tw-blur: ;
+        --tw-brightness: ;
+        --tw-contrast: ;
+        --tw-grayscale: ;
+        --tw-hue-rotate: ;
+        --tw-invert: ;
+        --tw-saturate: ;
+        --tw-sepia: ;
+        --tw-drop-shadow: ;
+        --tw-backdrop-blur: ;
+        --tw-backdrop-brightness: ;
+        --tw-backdrop-contrast: ;
+        --tw-backdrop-grayscale: ;
+        --tw-backdrop-hue-rotate: ;
+        --tw-backdrop-invert: ;
+        --tw-backdrop-opacity: ;
+        --tw-backdrop-saturate: ;
+        --tw-backdrop-sepia: ;
+        --tw-contain-size: ;
+        --tw-contain-layout: ;
+        --tw-contain-paint: ;
+        --tw-contain-style: ;
+      }
+      ::backdrop {
+        --tw-border-spacing-x: 0;
+        --tw-border-spacing-y: 0;
+        --tw-translate-x: 0;
+        --tw-translate-y: 0;
+        --tw-rotate: 0;
+        --tw-skew-x: 0;
+        --tw-skew-y: 0;
+        --tw-scale-x: 1;
+        --tw-scale-y: 1;
+        --tw-pan-x: ;
+        --tw-pan-y: ;
+        --tw-pinch-zoom: ;
+        --tw-scroll-snap-strictness: proximity;
+        --tw-gradient-from-position: ;
+        --tw-gradient-via-position: ;
+        --tw-gradient-to-position: ;
+        --tw-ordinal: ;
+        --tw-slashed-zero: ;
+        --tw-numeric-figure: ;
+        --tw-numeric-spacing: ;
+        --tw-numeric-fraction: ;
+        --tw-ring-inset: ;
+        --tw-ring-offset-width: 0px;
+        --tw-ring-offset-color: #fff;
+        --tw-ring-color: rgb(59 130 246 / 0.5);
+        --tw-ring-offset-shadow: 0 0 #0000;
+        --tw-ring-shadow: 0 0 #0000;
+        --tw-shadow: 0 0 #0000;
+        --tw-shadow-colored: 0 0 #0000;
+        --tw-blur: ;
+        --tw-brightness: ;
+        --tw-contrast: ;
+        --tw-grayscale: ;
+        --tw-hue-rotate: ;
+        --tw-invert: ;
+        --tw-saturate: ;
+        --tw-sepia: ;
+        --tw-drop-shadow: ;
+        --tw-backdrop-blur: ;
+        --tw-backdrop-brightness: ;
+        --tw-backdrop-contrast: ;
+        --tw-backdrop-grayscale: ;
+        --tw-backdrop-hue-rotate: ;
+        --tw-backdrop-invert: ;
+        --tw-backdrop-opacity: ;
+        --tw-backdrop-saturate: ;
+        --tw-backdrop-sepia: ;
+        --tw-contain-size: ;
+        --tw-contain-layout: ;
+        --tw-contain-paint: ;
+        --tw-contain-style: ;
+      } /* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */
+      *,
+      ::after,
+      ::before {
+        box-sizing: border-box;
+        border-width: 0;
+        border-style: solid;
+        border-color: #e5e7eb;
+      }
+      ::after,
+      ::before {
+        --tw-content: "";
+      }
+      :host,
+      html {
+        line-height: 1.5;
+        -webkit-text-size-adjust: 100%;
+        -moz-tab-size: 4;
+        tab-size: 4;
+        font-family: Inter, sans-serif;
+        font-feature-settings: normal;
+        font-variation-settings: normal;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        margin: 0;
+        line-height: inherit;
+      }
+      hr {
+        height: 0;
+        color: inherit;
+        border-top-width: 1px;
+      }
+      abbr:where([title]) {
+        -webkit-text-decoration: underline dotted;
+        text-decoration: underline dotted;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-size: inherit;
+        font-weight: inherit;
+      }
+      a {
+        color: inherit;
+        text-decoration: inherit;
+      }
+      b,
+      strong {
+        font-weight: bolder;
+      }
+      code,
+      kbd,
+      pre,
+      samp {
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        font-feature-settings: normal;
+        font-variation-settings: normal;
+        font-size: 1em;
+      }
+      small {
+        font-size: 80%;
+      }
+      sub,
+      sup {
+        font-size: 75%;
+        line-height: 0;
+        position: relative;
+        vertical-align: baseline;
+      }
+      sub {
+        bottom: -0.25em;
+      }
+      sup {
+        top: -0.5em;
+      }
+      table {
+        text-indent: 0;
+        border-color: inherit;
+        border-collapse: collapse;
+      }
+      button,
+      input,
+      optgroup,
+      select,
+      textarea {
+        font-family: inherit;
+        font-feature-settings: inherit;
+        font-variation-settings: inherit;
+        font-size: 100%;
+        font-weight: inherit;
+        line-height: inherit;
+        letter-spacing: inherit;
+        color: inherit;
+        margin: 0;
+        padding: 0;
+      }
+      button,
+      select {
+        text-transform: none;
+      }
+      button,
+      input:where([type="button"]),
+      input:where([type="reset"]),
+      input:where([type="submit"]) {
+        -webkit-appearance: button;
+        background-color: transparent;
+        background-image: none;
+      }
+      :-moz-focusring {
+        outline: auto;
+      }
+      :-moz-ui-invalid {
+        box-shadow: none;
+      }
+      progress {
+        vertical-align: baseline;
+      }
+      ::-webkit-inner-spin-button,
+      ::-webkit-outer-spin-button {
+        height: auto;
+      }
+      [type="search"] {
+        -webkit-appearance: textfield;
+        outline-offset: -2px;
+      }
+      ::-webkit-search-decoration {
+        -webkit-appearance: none;
+      }
+      ::-webkit-file-upload-button {
+        -webkit-appearance: button;
+        font: inherit;
+      }
+      summary {
+        display: list-item;
+      }
+      blockquote,
+      dd,
+      dl,
+      figure,
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      hr,
+      p,
+      pre {
+        margin: 0;
+      }
+      fieldset {
+        margin: 0;
+        padding: 0;
+      }
+      legend {
+        padding: 0;
+      }
+      menu,
+      ol,
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      dialog {
+        padding: 0;
+      }
+      textarea {
+        resize: vertical;
+      }
+      input::placeholder,
+      textarea::placeholder {
+        opacity: 1;
+        color: #9ca3af;
+      }
+      [role="button"],
+      button {
+        cursor: pointer;
+      }
+      :disabled {
+        cursor: default;
+      }
+      audio,
+      canvas,
+      embed,
+      iframe,
+      img,
+      object,
+      svg,
+      video {
+        display: block;
+        vertical-align: middle;
+      }
+      img,
+      video {
+        max-width: 100%;
+        height: auto;
+      }
+      [hidden]:where(:not([hidden="until-found"])) {
+        display: none;
+      }
+      .pointer-events-none {
+        pointer-events: none;
+      }
+      .pointer-events-auto {
+        pointer-events: auto;
+      }
+      .fixed {
+        position: fixed;
+      }
+      .absolute {
+        position: absolute;
+      }
+      .relative {
+        position: relative;
+      }
+      .sticky {
+        position: sticky;
+      }
+      .inset-0 {
+        inset: 0px;
+      }
+      .bottom-4 {
+        bottom: 1rem;
+      }
+      .bottom-6 {
+        bottom: 1.5rem;
+      }
+      .left-6 {
+        left: 1.5rem;
+      }
+      .right-4 {
+        right: 1rem;
+      }
+      .right-6 {
+        right: 1.5rem;
+      }
+      .top-0 {
+        top: 0px;
+      }
+      .top-4 {
+        top: 1rem;
+      }
+      .z-10 {
+        z-index: 10;
+      }
+      .z-20 {
+        z-index: 20;
+      }
+      .z-40 {
+        z-index: 40;
+      }
+      .z-50 {
+        z-index: 50;
+      }
+      .mx-auto {
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .-mt-1 {
+        margin-top: -0.25rem;
+      }
+      .mb-1 {
+        margin-bottom: 0.25rem;
+      }
+      .mb-2 {
+        margin-bottom: 0.5rem;
+      }
+      .mb-3 {
+        margin-bottom: 0.75rem;
+      }
+      .mb-6 {
+        margin-bottom: 1.5rem;
+      }
+      .mr-1 {
+        margin-right: 0.25rem;
+      }
+      .mt-1 {
+        margin-top: 0.25rem;
+      }
+      .mt-12 {
+        margin-top: 3rem;
+      }
+      .mt-2 {
+        margin-top: 0.5rem;
+      }
+      .mt-6 {
+        margin-top: 1.5rem;
+      }
+      .line-clamp-2 {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+      }
+      .block {
+        display: block;
+      }
+      .inline-block {
+        display: inline-block;
+      }
+      .flex {
+        display: flex;
+      }
+      .inline-flex {
+        display: inline-flex;
+      }
+      .grid {
+        display: grid;
+      }
+      .hidden {
+        display: none;
+      }
+      .h-11 {
+        height: 2.75rem;
+      }
+      .h-20 {
+        height: 5rem;
+      }
+      .h-3 {
+        height: 0.75rem;
+      }
+      .h-48 {
+        height: 12rem;
+      }
+      .h-7 {
+        height: 1.75rem;
+      }
+      .h-8 {
+        height: 2rem;
+      }
+      .h-\[450px\] {
+        height: 450px;
+      }
+      .h-full {
+        height: 100%;
+      }
+      .h-10 {
+        height: 2.5rem;
+      }
+      .h-28 {
+        height: 7rem;
+      }
+      .h-4 {
+        height: 1rem;
+      }
+      .max-h-\[90vh\] {
+        max-height: 90vh;
+      }
+      .min-h-screen {
+        min-height: 100vh;
+      }
+      .w-0 {
+        width: 0px;
+      }
+      .w-11 {
+        width: 2.75rem;
+      }
+      .w-32 {
+        width: 8rem;
+      }
+      .w-7 {
+        width: 1.75rem;
+      }
+      .w-8 {
+        width: 2rem;
+      }
+      .w-full {
+        width: 100%;
+      }
+      .w-10 {
+        width: 2.5rem;
+      }
+      .w-4 {
+        width: 1rem;
+      }
+      .max-w-2xl {
+        max-width: 42rem;
+      }
+      .max-w-4xl {
+        max-width: 56rem;
+      }
+      .max-w-7xl {
+        max-width: 80rem;
+      }
+      .max-w-\[700px\] {
+        max-width: 700px;
+      }
+      .flex-grow {
+        flex-grow: 1;
+      }
+      .translate-y-4 {
+        --tw-translate-y: 1rem;
+        transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+          rotate(var(--tw-rotate)) skewX(var(--tw-skew-x))
+          skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x))
+          scaleY(var(--tw-scale-y));
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.5;
+        }
+      }
+      .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      .cursor-crosshair {
+        cursor: crosshair;
+      }
+      .cursor-grab {
+        cursor: grab;
+      }
+      .cursor-pointer {
+        cursor: pointer;
+      }
+      .touch-none {
+        touch-action: none;
+      }
+      .select-none {
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      .select-all {
+        -webkit-user-select: all;
+        user-select: all;
+      }
+      .resize-none {
+        resize: none;
+      }
+      .list-disc {
+        list-style-type: disc;
+      }
+      .grid-cols-1 {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
+      .grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .flex-col {
+        flex-direction: column;
+      }
+      .flex-wrap {
+        flex-wrap: wrap;
+      }
+      .items-center {
+        align-items: center;
+      }
+      .justify-center {
+        justify-content: center;
+      }
+      .justify-between {
+        justify-content: space-between;
+      }
+      .gap-1\.5 {
+        gap: 0.375rem;
+      }
+      .gap-2 {
+        gap: 0.5rem;
+      }
+      .gap-3 {
+        gap: 0.75rem;
+      }
+      .gap-4 {
+        gap: 1rem;
+      }
+      .gap-6 {
+        gap: 1.5rem;
+      }
+      .gap-8 {
+        gap: 2rem;
+      }
+      .space-x-1 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-x-reverse: 0;
+        margin-right: calc(0.25rem * var(--tw-space-x-reverse));
+        margin-left: calc(0.25rem * calc(1 - var(--tw-space-x-reverse)));
+      }
+      .space-y-1\.5 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-y-reverse: 0;
+        margin-top: calc(0.375rem * calc(1 - var(--tw-space-y-reverse)));
+        margin-bottom: calc(0.375rem * var(--tw-space-y-reverse));
+      }
+      .space-y-12 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-y-reverse: 0;
+        margin-top: calc(3rem * calc(1 - var(--tw-space-y-reverse)));
+        margin-bottom: calc(3rem * var(--tw-space-y-reverse));
+      }
+      .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-y-reverse: 0;
+        margin-top: calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));
+        margin-bottom: calc(0.5rem * var(--tw-space-y-reverse));
+      }
+      .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-y-reverse: 0;
+        margin-top: calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));
+        margin-bottom: calc(0.75rem * var(--tw-space-y-reverse));
+      }
+      .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-y-reverse: 0;
+        margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
+        margin-bottom: calc(1rem * var(--tw-space-y-reverse));
+      }
+      .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-y-reverse: 0;
+        margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
+        margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
+      }
+      .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-y-reverse: 0;
+        margin-top: calc(2rem * calc(1 - var(--tw-space-y-reverse)));
+        margin-bottom: calc(2rem * var(--tw-space-y-reverse));
+      }
+      .self-start {
+        align-self: flex-start;
+      }
+      .overflow-hidden {
+        overflow: hidden;
+      }
+      .overflow-y-auto {
+        overflow-y: auto;
+      }
+      .rounded-2xl {
+        border-radius: 1rem;
+      }
+      .rounded-3xl {
+        border-radius: 1.5rem;
+      }
+      .rounded-full {
+        border-radius: 9999px;
+      }
+      .rounded-lg {
+        border-radius: 0.5rem;
+      }
+      .rounded-md {
+        border-radius: 0.375rem;
+      }
+      .rounded-xl {
+        border-radius: 0.75rem;
+      }
+      .rounded {
+        border-radius: 0.25rem;
+      }
+      .border {
+        border-width: 1px;
+      }
+      .border-2 {
+        border-width: 2px;
+      }
+      .border-b {
+        border-bottom-width: 1px;
+      }
+      .border-t {
+        border-top-width: 1px;
+      }
+      .border-blue-500\/30 {
+        border-color: rgb(59 130 246 / 0.3);
+      }
+      .border-emerald-400\/30 {
+        border-color: rgb(52 211 153 / 0.3);
+      }
+      .border-nba-accent {
+        --tw-border-opacity: 1;
+        border-color: rgb(255 69 0 / var(--tw-border-opacity, 1));
+      }
+      .border-nba-accent\/30 {
+        border-color: rgb(255 69 0 / 0.3);
+      }
+      .border-nba-border {
+        --tw-border-opacity: 1;
+        border-color: rgb(31 41 61 / var(--tw-border-opacity, 1));
+      }
+      .border-nba-gold\/30 {
+        border-color: rgb(253 185 39 / 0.3);
+      }
+      .border-red-500\/40 {
+        border-color: rgb(239 68 68 / 0.4);
+      }
+      .border-slate-600 {
+        --tw-border-opacity: 1;
+        border-color: rgb(71 85 105 / var(--tw-border-opacity, 1));
+      }
+      .border-white {
+        --tw-border-opacity: 1;
+        border-color: rgb(255 255 255 / var(--tw-border-opacity, 1));
+      }
+      .border-white\/20 {
+        border-color: rgb(255 255 255 / 0.2);
+      }
+      .bg-\[\#10B981\] {
+        --tw-bg-opacity: 1;
+        background-color: rgb(16 185 129 / var(--tw-bg-opacity, 1));
+      }
+      .bg-\[\#3B82F6\] {
+        --tw-bg-opacity: 1;
+        background-color: rgb(59 130 246 / var(--tw-bg-opacity, 1));
+      }
+      .bg-\[\#F59E0B\] {
+        --tw-bg-opacity: 1;
+        background-color: rgb(245 158 11 / var(--tw-bg-opacity, 1));
+      }
+      .bg-\[\#FF4500\] {
+        --tw-bg-opacity: 1;
+        background-color: rgb(255 69 0 / var(--tw-bg-opacity, 1));
+      }
+      .bg-black\/80 {
+        background-color: rgb(0 0 0 / 0.8);
+      }
+      .bg-black\/85 {
+        background-color: rgb(0 0 0 / 0.85);
+      }
+      .bg-blue-500\/20 {
+        background-color: rgb(59 130 246 / 0.2);
+      }
+      .bg-blue-600 {
+        --tw-bg-opacity: 1;
+        background-color: rgb(37 99 235 / var(--tw-bg-opacity, 1));
+      }
+      .bg-emerald-600 {
+        --tw-bg-opacity: 1;
+        background-color: rgb(5 150 105 / var(--tw-bg-opacity, 1));
+      }
+      .bg-nba-accent {
+        --tw-bg-opacity: 1;
+        background-color: rgb(255 69 0 / var(--tw-bg-opacity, 1));
+      }
+      .bg-nba-accent\/10 {
+        background-color: rgb(255 69 0 / 0.1);
+      }
+      .bg-nba-accent\/20 {
+        background-color: rgb(255 69 0 / 0.2);
+      }
+      .bg-nba-border {
+        --tw-bg-opacity: 1;
+        background-color: rgb(31 41 61 / var(--tw-bg-opacity, 1));
+      }
+      .bg-nba-border\/40 {
+        background-color: rgb(31 41 61 / 0.4);
+      }
+      .bg-nba-card {
+        --tw-bg-opacity: 1;
+        background-color: rgb(18 24 36 / var(--tw-bg-opacity, 1));
+      }
+      .bg-nba-dark {
+        --tw-bg-opacity: 1;
+        background-color: rgb(11 14 20 / var(--tw-bg-opacity, 1));
+      }
+      .bg-nba-dark\/90 {
+        background-color: rgb(11 14 20 / 0.9);
+      }
+      .bg-nba-gold {
+        --tw-bg-opacity: 1;
+        background-color: rgb(253 185 39 / var(--tw-bg-opacity, 1));
+      }
+      .bg-nba-gold\/20 {
+        background-color: rgb(253 185 39 / 0.2);
+      }
+      .bg-red-600\/20 {
+        background-color: rgb(220 38 38 / 0.2);
+      }
+      .bg-\[radial-gradient\(\#FF4500_1px\2c transparent_1px\)\] {
+        background-image: radial-gradient(#ff4500 1px, transparent 1px);
+      }
+      .bg-gradient-to-r {
+        background-image: linear-gradient(to right, var(--tw-gradient-stops));
+      }
+      .bg-gradient-to-t {
+        background-image: linear-gradient(to top, var(--tw-gradient-stops));
+      }
+      .bg-gradient-to-tr {
+        background-image: linear-gradient(
+          to top right,
+          var(--tw-gradient-stops)
+        );
+      }
+      .bg-gradient-to-br {
+        background-image: linear-gradient(
+          to bottom right,
+          var(--tw-gradient-stops)
+        );
+      }
+      .from-emerald-600 {
+        --tw-gradient-from: #059669 var(--tw-gradient-from-position);
+        --tw-gradient-to: rgb(5 150 105 / 0) var(--tw-gradient-to-position);
+        --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+      }
+      .from-nba-accent {
+        --tw-gradient-from: #ff4500 var(--tw-gradient-from-position);
+        --tw-gradient-to: rgb(255 69 0 / 0) var(--tw-gradient-to-position);
+        --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+      }
+      .from-nba-card {
+        --tw-gradient-from: #121824 var(--tw-gradient-from-position);
+        --tw-gradient-to: rgb(18 24 36 / 0) var(--tw-gradient-to-position);
+        --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+      }
+      .from-nba-red {
+        --tw-gradient-from: #c9082a var(--tw-gradient-from-position);
+        --tw-gradient-to: rgb(201 8 42 / 0) var(--tw-gradient-to-position);
+        --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+      }
+      .from-white {
+        --tw-gradient-from: #fff var(--tw-gradient-from-position);
+        --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
+        --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+      }
+      .from-purple-900\/40 {
+        --tw-gradient-from: rgb(88 28 135 / 0.4)
+          var(--tw-gradient-from-position);
+        --tw-gradient-to: rgb(88 28 135 / 0) var(--tw-gradient-to-position);
+        --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+      }
+      .from-yellow-600\/30 {
+        --tw-gradient-from: rgb(202 138 4 / 0.3)
+          var(--tw-gradient-from-position);
+        --tw-gradient-to: rgb(202 138 4 / 0) var(--tw-gradient-to-position);
+        --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+      }
+      .via-gray-200 {
+        --tw-gradient-to: rgb(229 231 235 / 0) var(--tw-gradient-to-position);
+        --tw-gradient-stops:
+          var(--tw-gradient-from), #e5e7eb var(--tw-gradient-via-position),
+          var(--tw-gradient-to);
+      }
+      .via-nba-accent {
+        --tw-gradient-to: rgb(255 69 0 / 0) var(--tw-gradient-to-position);
+        --tw-gradient-stops:
+          var(--tw-gradient-from), #ff4500 var(--tw-gradient-via-position),
+          var(--tw-gradient-to);
+      }
+      .via-nba-dark {
+        --tw-gradient-to: rgb(11 14 20 / 0) var(--tw-gradient-to-position);
+        --tw-gradient-stops:
+          var(--tw-gradient-from), #0b0e14 var(--tw-gradient-via-position),
+          var(--tw-gradient-to);
+      }
+      .to-black {
+        --tw-gradient-to: #000 var(--tw-gradient-to-position);
+      }
+      .to-blue-950\/40 {
+        --tw-gradient-to: rgb(23 37 84 / 0.4) var(--tw-gradient-to-position);
+      }
+      .to-gray-400 {
+        --tw-gradient-to: #9ca3af var(--tw-gradient-to-position);
+      }
+      .to-nba-gold {
+        --tw-gradient-to: #fdb927 var(--tw-gradient-to-position);
+      }
+      .to-nba-red {
+        --tw-gradient-to: #c9082a var(--tw-gradient-to-position);
+      }
+      .to-orange-950\/40 {
+        --tw-gradient-to: rgb(67 20 7 / 0.4) var(--tw-gradient-to-position);
+      }
+      .to-teal-600 {
+        --tw-gradient-to: #0d9488 var(--tw-gradient-to-position);
+      }
+      .to-yellow-950\/40 {
+        --tw-gradient-to: rgb(66 32 6 / 0.4) var(--tw-gradient-to-position);
+      }
+      .to-blue-900\/40 {
+        --tw-gradient-to: rgb(30 58 138 / 0.4) var(--tw-gradient-to-position);
+      }
+      .to-yellow-600\/30 {
+        --tw-gradient-to: rgb(202 138 4 / 0.3) var(--tw-gradient-to-position);
+      }
+      .bg-clip-text {
+        -webkit-background-clip: text;
+        background-clip: text;
+      }
+      .fill-none {
+        fill: none;
+      }
+      .fill-slate-800\/30 {
+        fill: rgb(30 41 59 / 0.3);
+      }
+      .stroke-nba-gold {
+        stroke: #fdb927;
+      }
+      .stroke-nba-red {
+        stroke: #c9082a;
+      }
+      .stroke-slate-500\/50 {
+        stroke: rgb(100 116 139 / 0.5);
+      }
+      .stroke-2 {
+        stroke-width: 2;
+      }
+      .p-1 {
+        padding: 0.25rem;
+      }
+      .p-2 {
+        padding: 0.5rem;
+      }
+      .p-2\.5 {
+        padding: 0.625rem;
+      }
+      .p-4 {
+        padding: 1rem;
+      }
+      .p-5 {
+        padding: 1.25rem;
+      }
+      .p-6 {
+        padding: 1.5rem;
+      }
+      .p-8 {
+        padding: 2rem;
+      }
+      .p-3 {
+        padding: 0.75rem;
+      }
+      .px-2\.5 {
+        padding-left: 0.625rem;
+        padding-right: 0.625rem;
+      }
+      .px-3 {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+      .px-3\.5 {
+        padding-left: 0.875rem;
+        padding-right: 0.875rem;
+      }
+      .px-4 {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      .px-6 {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+      }
+      .py-1 {
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+      }
+      .py-1\.5 {
+        padding-top: 0.375rem;
+        padding-bottom: 0.375rem;
+      }
+      .py-2 {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+      }
+      .py-2\.5 {
+        padding-top: 0.625rem;
+        padding-bottom: 0.625rem;
+      }
+      .py-3 {
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+      }
+      .py-3\.5 {
+        padding-top: 0.875rem;
+        padding-bottom: 0.875rem;
+      }
+      .py-8 {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+      }
+      .px-2 {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+      .py-0\.5 {
+        padding-top: 0.125rem;
+        padding-bottom: 0.125rem;
+      }
+      .pb-3 {
+        padding-bottom: 0.75rem;
+      }
+      .pb-4 {
+        padding-bottom: 1rem;
+      }
+      .pb-6 {
+        padding-bottom: 1.5rem;
+      }
+      .pl-4 {
+        padding-left: 1rem;
+      }
+      .pt-2 {
+        padding-top: 0.5rem;
+      }
+      .pt-4 {
+        padding-top: 1rem;
+      }
+      .text-left {
+        text-align: left;
+      }
+      .text-center {
+        text-align: center;
+      }
+      .font-mono {
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+      }
+      .text-2xl {
+        font-size: 1.5rem;
+        line-height: 2rem;
+      }
+      .text-3xl {
+        font-size: 1.875rem;
+        line-height: 2.25rem;
+      }
+      .text-4xl {
+        font-size: 2.25rem;
+        line-height: 2.5rem;
+      }
+      .text-6xl {
+        font-size: 3.75rem;
+        line-height: 1;
+      }
+      .text-base {
+        font-size: 1rem;
+        line-height: 1.5rem;
+      }
+      .text-lg {
+        font-size: 1.125rem;
+        line-height: 1.75rem;
+      }
+      .text-sm {
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+      }
+      .text-xl {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+      }
+      .text-xs {
+        font-size: 0.75rem;
+        line-height: 1rem;
+      }
+      .text-\[10px\] {
+        font-size: 10px;
+      }
+      .text-\[11px\] {
+        font-size: 11px;
+      }
+      .font-black {
+        font-weight: 900;
+      }
+      .font-bold {
+        font-weight: 700;
+      }
+      .font-extrabold {
+        font-weight: 800;
+      }
+      .font-medium {
+        font-weight: 500;
+      }
+      .font-semibold {
+        font-weight: 600;
+      }
+      .uppercase {
+        text-transform: uppercase;
+      }
+      .italic {
+        font-style: italic;
+      }
+      .leading-relaxed {
+        line-height: 1.625;
+      }
+      .leading-tight {
+        line-height: 1.25;
+      }
+      .tracking-tight {
+        letter-spacing: -0.025em;
+      }
+      .tracking-wider {
+        letter-spacing: 0.05em;
+      }
+      .tracking-widest {
+        letter-spacing: 0.1em;
+      }
+      .text-black {
+        --tw-text-opacity: 1;
+        color: rgb(0 0 0 / var(--tw-text-opacity, 1));
+      }
+      .text-blue-400 {
+        --tw-text-opacity: 1;
+        color: rgb(96 165 250 / var(--tw-text-opacity, 1));
+      }
+      .text-blue-500\/20 {
+        color: rgb(59 130 246 / 0.2);
+      }
+      .text-emerald-400 {
+        --tw-text-opacity: 1;
+        color: rgb(52 211 153 / var(--tw-text-opacity, 1));
+      }
+      .text-gray-100 {
+        --tw-text-opacity: 1;
+        color: rgb(243 244 246 / var(--tw-text-opacity, 1));
+      }
+      .text-gray-200 {
+        --tw-text-opacity: 1;
+        color: rgb(229 231 235 / var(--tw-text-opacity, 1));
+      }
+      .text-gray-300 {
+        --tw-text-opacity: 1;
+        color: rgb(209 213 219 / var(--tw-text-opacity, 1));
+      }
+      .text-gray-400 {
+        --tw-text-opacity: 1;
+        color: rgb(156 163 175 / var(--tw-text-opacity, 1));
+      }
+      .text-nba-accent {
+        --tw-text-opacity: 1;
+        color: rgb(255 69 0 / var(--tw-text-opacity, 1));
+      }
+      .text-nba-accent\/20 {
+        color: rgb(255 69 0 / 0.2);
+      }
+      .text-nba-gold {
+        --tw-text-opacity: 1;
+        color: rgb(253 185 39 / var(--tw-text-opacity, 1));
+      }
+      .text-nba-gold\/20 {
+        color: rgb(253 185 39 / 0.2);
+      }
+      .text-red-400 {
+        --tw-text-opacity: 1;
+        color: rgb(248 113 113 / var(--tw-text-opacity, 1));
+      }
+      .text-transparent {
+        color: transparent;
+      }
+      .text-white {
+        --tw-text-opacity: 1;
+        color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+      }
+      .text-gray-500 {
+        --tw-text-opacity: 1;
+        color: rgb(107 114 128 / var(--tw-text-opacity, 1));
+      }
+      .accent-nba-accent {
+        accent-color: #ff4500;
+      }
+      .opacity-0 {
+        opacity: 0;
+      }
+      .opacity-20 {
+        opacity: 0.2;
+      }
+      .shadow-2xl {
+        --tw-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+        --tw-shadow-colored: 0 25px 50px -12px var(--tw-shadow-color);
+        box-shadow:
+          var(--tw-ring-offset-shadow, 0 0 #0000),
+          var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+      }
+      .shadow-lg {
+        --tw-shadow:
+          0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --tw-shadow-colored:
+          0 10px 15px -3px var(--tw-shadow-color),
+          0 4px 6px -4px var(--tw-shadow-color);
+        box-shadow:
+          var(--tw-ring-offset-shadow, 0 0 #0000),
+          var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+      }
+      .shadow-md {
+        --tw-shadow:
+          0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --tw-shadow-colored:
+          0 4px 6px -1px var(--tw-shadow-color),
+          0 2px 4px -2px var(--tw-shadow-color);
+        box-shadow:
+          var(--tw-ring-offset-shadow, 0 0 #0000),
+          var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+      }
+      .shadow-xl {
+        --tw-shadow:
+          0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        --tw-shadow-colored:
+          0 20px 25px -5px var(--tw-shadow-color),
+          0 8px 10px -6px var(--tw-shadow-color);
+        box-shadow:
+          var(--tw-ring-offset-shadow, 0 0 #0000),
+          var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+      }
+      .shadow-emerald-900\/30 {
+        --tw-shadow-color: rgb(6 78 59 / 0.3);
+        --tw-shadow: var(--tw-shadow-colored);
+      }
+      .shadow-nba-accent\/20 {
+        --tw-shadow-color: rgb(255 69 0 / 0.2);
+        --tw-shadow: var(--tw-shadow-colored);
+      }
+      .shadow-nba-accent\/25 {
+        --tw-shadow-color: rgb(255 69 0 / 0.25);
+        --tw-shadow: var(--tw-shadow-colored);
+      }
+      .shadow-nba-accent\/50 {
+        --tw-shadow-color: rgb(255 69 0 / 0.5);
+        --tw-shadow: var(--tw-shadow-colored);
+      }
+      .ring-2 {
+        --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0
+          var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+        --tw-ring-shadow: var(--tw-ring-inset) 0 0 0
+          calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+        box-shadow:
+          var(--tw-ring-offset-shadow), var(--tw-ring-shadow),
+          var(--tw-shadow, 0 0 #0000);
+      }
+      .ring-white\/50 {
+        --tw-ring-color: rgb(255 255 255 / 0.5);
+      }
+      .backdrop-blur-md {
+        --tw-backdrop-blur: blur(12px);
+        -webkit-backdrop-filter: var(--tw-backdrop-blur)
+          var(--tw-backdrop-brightness) var(--tw-backdrop-contrast)
+          var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate)
+          var(--tw-backdrop-invert) var(--tw-backdrop-opacity)
+          var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+        backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness)
+          var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale)
+          var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert)
+          var(--tw-backdrop-opacity) var(--tw-backdrop-saturate)
+          var(--tw-backdrop-sepia);
+      }
+      .backdrop-blur-sm {
+        --tw-backdrop-blur: blur(4px);
+        -webkit-backdrop-filter: var(--tw-backdrop-blur)
+          var(--tw-backdrop-brightness) var(--tw-backdrop-contrast)
+          var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate)
+          var(--tw-backdrop-invert) var(--tw-backdrop-opacity)
+          var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+        backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness)
+          var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale)
+          var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert)
+          var(--tw-backdrop-opacity) var(--tw-backdrop-saturate)
+          var(--tw-backdrop-sepia);
+      }
+      .transition-all {
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 150ms;
+      }
+      .transition-colors {
+        transition-property:
+          color,
+          background-color,
+          border-color,
+          fill,
+          stroke,
+          -webkit-text-decoration-color;
+        transition-property:
+          color, background-color, border-color, text-decoration-color, fill,
+          stroke;
+        transition-property:
+          color,
+          background-color,
+          border-color,
+          text-decoration-color,
+          fill,
+          stroke,
+          -webkit-text-decoration-color;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 150ms;
+      }
+      .transition-transform {
+        transition-property: transform;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 150ms;
+      }
+      .duration-300 {
+        transition-duration: 300ms;
+      }
+      .duration-500 {
+        transition-duration: 500ms;
+      }
+      .\[background-size\:16px_16px\] {
+        background-size: 16px 16px;
+      }
+      .selection\:bg-nba-accent *::selection {
+        --tw-bg-opacity: 1;
+        background-color: rgb(255 69 0 / var(--tw-bg-opacity, 1));
+      }
+      .selection\:text-white *::selection {
+        --tw-text-opacity: 1;
+        color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+      }
+      .selection\:bg-nba-accent::selection {
+        --tw-bg-opacity: 1;
+        background-color: rgb(255 69 0 / var(--tw-bg-opacity, 1));
+      }
+      .selection\:text-white::selection {
+        --tw-text-opacity: 1;
+        color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+      }
+      .hover\:scale-105:hover {
+        --tw-scale-x: 1.05;
+        --tw-scale-y: 1.05;
+        transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+          rotate(var(--tw-rotate)) skewX(var(--tw-skew-x))
+          skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x))
+          scaleY(var(--tw-scale-y));
+      }
+      .hover\:border-blue-500:hover {
+        --tw-border-opacity: 1;
+        border-color: rgb(59 130 246 / var(--tw-border-opacity, 1));
+      }
+      .hover\:border-nba-accent:hover {
+        --tw-border-opacity: 1;
+        border-color: rgb(255 69 0 / var(--tw-border-opacity, 1));
+      }
+      .hover\:border-nba-accent\/50:hover {
+        border-color: rgb(255 69 0 / 0.5);
+      }
+      .hover\:border-nba-gold:hover {
+        --tw-border-opacity: 1;
+        border-color: rgb(253 185 39 / var(--tw-border-opacity, 1));
+      }
+      .hover\:border-gray-600:hover {
+        --tw-border-opacity: 1;
+        border-color: rgb(75 85 99 / var(--tw-border-opacity, 1));
+      }
+      .hover\:bg-emerald-500:hover {
+        --tw-bg-opacity: 1;
+        background-color: rgb(16 185 129 / var(--tw-bg-opacity, 1));
+      }
+      .hover\:bg-gray-700:hover {
+        --tw-bg-opacity: 1;
+        background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));
+      }
+      .hover\:bg-nba-border:hover {
+        --tw-bg-opacity: 1;
+        background-color: rgb(31 41 61 / var(--tw-bg-opacity, 1));
+      }
+      .hover\:bg-nba-card:hover {
+        --tw-bg-opacity: 1;
+        background-color: rgb(18 24 36 / var(--tw-bg-opacity, 1));
+      }
+      .hover\:bg-red-600\/30:hover {
+        background-color: rgb(220 38 38 / 0.3);
+      }
+      .hover\:bg-nba-accent:hover {
+        --tw-bg-opacity: 1;
+        background-color: rgb(255 69 0 / var(--tw-bg-opacity, 1));
+      }
+      .hover\:from-emerald-500:hover {
+        --tw-gradient-from: #10b981 var(--tw-gradient-from-position);
+        --tw-gradient-to: rgb(16 185 129 / 0) var(--tw-gradient-to-position);
+        --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+      }
+      .hover\:to-teal-500:hover {
+        --tw-gradient-to: #14b8a6 var(--tw-gradient-to-position);
+      }
+      .hover\:text-white:hover {
+        --tw-text-opacity: 1;
+        color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+      }
+      .hover\:opacity-90:hover {
+        opacity: 0.9;
+      }
+      .focus\:scale-110:focus {
+        --tw-scale-x: 1.1;
+        --tw-scale-y: 1.1;
+        transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+          rotate(var(--tw-rotate)) skewX(var(--tw-skew-x))
+          skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x))
+          scaleY(var(--tw-scale-y));
+      }
+      .focus\:outline-none:focus {
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+      }
+      .active\:cursor-grabbing:active {
+        cursor: grabbing;
+      }
+      .group:hover .group-hover\:scale-110 {
+        --tw-scale-x: 1.1;
+        --tw-scale-y: 1.1;
+        transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+          rotate(var(--tw-rotate)) skewX(var(--tw-skew-x))
+          skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x))
+          scaleY(var(--tw-scale-y));
+      }
+      .group:hover .group-hover\:text-blue-400 {
+        --tw-text-opacity: 1;
+        color: rgb(96 165 250 / var(--tw-text-opacity, 1));
+      }
+      .group:hover .group-hover\:text-nba-accent {
+        --tw-text-opacity: 1;
+        color: rgb(255 69 0 / var(--tw-text-opacity, 1));
+      }
+      .group:hover .group-hover\:text-nba-gold {
+        --tw-text-opacity: 1;
+        color: rgb(253 185 39 / var(--tw-text-opacity, 1));
+      }
+      @media (min-width: 640px) {
+        .sm\:inline {
+          display: inline;
+        }
+        .sm\:flex-row {
+          flex-direction: row;
+        }
+        .sm\:items-center {
+          align-items: center;
+        }
+        .sm\:p-8 {
+          padding: 2rem;
+        }
+        .sm\:px-6 {
+          padding-left: 1.5rem;
+          padding-right: 1.5rem;
+        }
+        .sm\:text-5xl {
+          font-size: 3rem;
+          line-height: 1;
+        }
+        .sm\:text-lg {
+          font-size: 1.125rem;
+          line-height: 1.75rem;
+        }
+      }
+      @media (min-width: 768px) {
+        .md\:inline {
+          display: inline;
+        }
+        .md\:grid-cols-2 {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .md\:grid-cols-3 {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .md\:grid-cols-4 {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+        .md\:flex-row {
+          flex-direction: row;
+        }
+        .md\:items-center {
+          align-items: center;
+        }
+        .md\:p-14 {
+          padding: 3.5rem;
+        }
+      }
+      @media (min-width: 1024px) {
+        .lg\:col-span-1 {
+          grid-column: span 1 / span 1;
+        }
+        .lg\:col-span-2 {
+          grid-column: span 2 / span 2;
+        }
+        .lg\:col-span-3 {
+          grid-column: span 3 / span 3;
+        }
+        .lg\:flex {
+          display: flex;
+        }
+        .lg\:hidden {
+          display: none;
+        }
+        .lg\:grid-cols-3 {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .lg\:grid-cols-4 {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+        .lg\:px-8 {
+          padding-left: 2rem;
+          padding-right: 2rem;
+        }
+        .lg\:text-6xl {
+          font-size: 3.75rem;
+          line-height: 1;
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="bg-nba-dark text-gray-100 min-h-screen flex flex-col justify-between selection:bg-nba-accent selection:text-white"
+  >
+    <header
+      class="sticky top-0 z-50 bg-nba-dark/90 backdrop-blur-md border-b border-nba-border transition-all duration-300"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-20">
+          <!-- Logo -->
+          <div
+            class="flex items-center gap-3 cursor-pointer"
+            onclick="switchTab('home')"
+          >
+            <div
+              class="w-11 h-11 rounded-xl bg-gradient-to-tr from-nba-red via-nba-accent to-nba-gold flex items-center justify-center shadow-lg shadow-nba-accent/20"
+            >
+              <i
+                class="fa-solid fa-basketball text-white text-2xl animate-pulse"
+              ></i>
+            </div>
+            <div>
+              <span
+                class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent block"
+                >NBA ACADEMY</span
+              >
+              <span
+                class="text-xs text-nba-gold font-semibold tracking-widest block -mt-1 uppercase"
+                >Masterclass VN</span
+              >
+            </div>
+          </div>
+
+          <!-- Desktop Navigation Menu -->
+          <nav class="hidden lg:flex items-center space-x-1">
+            <button
+              onclick="switchTab('home')"
+              id="nav-home"
+              class="nav-btn px-3 py-2 rounded-lg text-xs font-bold transition-all text-nba-accent bg-nba-border/40"
+            >
+              Trang Chủ
+            </button>
+            <button
+              onclick="switchTab('skills')"
+              id="nav-skills"
+              class="nav-btn px-3 py-2 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white hover:bg-nba-card"
+            >
+              Kỹ Năng
+            </button>
+            <button
+              onclick="switchTab('tactics')"
+              id="nav-tactics"
+              class="nav-btn px-3 py-2 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white hover:bg-nba-card"
+            >
+              Chiến Thuật
+            </button>
+            <button
+              onclick="switchTab('stars')"
+              id="nav-stars"
+              class="nav-btn px-3 py-2 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white hover:bg-nba-card"
+            >
+              Góc Ngôi Sao
+            </button>
+            <button
+              onclick="switchTab('board')"
+              id="nav-board"
+              class="nav-btn px-3 py-2 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white hover:bg-nba-card"
+            >
+              Sa Bàn 2D
+            </button>
+            <button
+              onclick="switchTab('routine')"
+              id="nav-routine"
+              class="nav-btn px-3 py-2 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white hover:bg-nba-card"
+            >
+              Lịch Tập
+            </button>
+          </nav>
+
+          <!-- Action Tools & Copy Source Code Button -->
+          <div class="flex items-center gap-3">
+            <!-- COPY CODE BUTTON IN HEADER -->
+            <button
+              onclick="copyFullWebsiteCode()"
+              class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-900/30 transition-all border border-emerald-400/30"
+            >
+              <i class="fa-regular fa-copy text-sm"></i>
+              <span class="hidden sm:inline">Sao Chép Code</span>
+            </button>
+
+            <button
+              onclick="openSourceCodeModal()"
+              class="px-3 py-2 rounded-xl bg-nba-card border border-nba-border text-gray-300 hover:text-white font-bold text-xs flex items-center gap-1.5"
+              title="Xem mã nguồn"
+            >
+              <i class="fa-solid fa-code"></i>
+              <span class="hidden md:inline">Xem Source</span>
+            </button>
+
+            <button
+              onclick="toggleMobileMenu()"
+              class="lg:hidden p-2.5 rounded-xl bg-nba-card border border-nba-border text-gray-300 hover:text-white"
+            >
+              <i class="fa-solid fa-bars text-lg"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Menu Dropdown -->
+      <div
+        id="mobile-menu"
+        class="hidden lg:hidden border-b border-nba-border bg-nba-card px-4 pt-2 pb-4 space-y-2"
+      >
+        <button
+          onclick="switchTab('home')"
+          class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-200 hover:bg-nba-border"
+        >
+          Trang Chủ
+        </button>
+        <button
+          onclick="switchTab('skills')"
+          class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-200 hover:bg-nba-border"
+        >
+          Kỹ Năng
+        </button>
+        <button
+          onclick="switchTab('tactics')"
+          class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-200 hover:bg-nba-border"
+        >
+          Chiến Thuật
+        </button>
+        <button
+          onclick="switchTab('stars')"
+          class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-200 hover:bg-nba-border"
+        >
+          Góc Ngôi Sao
+        </button>
+        <button
+          onclick="switchTab('board')"
+          class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-200 hover:bg-nba-border"
+        >
+          Sa Bàn Tương Tác
+        </button>
+        <button
+          onclick="switchTab('routine')"
+          class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-200 hover:bg-nba-border"
+        >
+          Lịch Tập Hàng Ngày
+        </button>
+      </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <section id="tab-home" class="space-y-12">
+        <!-- Hero Banner -->
+        <div
+          class="relative rounded-3xl overflow-hidden border border-nba-border bg-gradient-to-r from-nba-card via-nba-dark to-black p-8 md:p-14 glow-effect"
+        >
+          <div
+            class="absolute inset-0 opacity-20 bg-[radial-gradient(#FF4500_1px,transparent_1px)] [background-size:16px_16px]"
+          ></div>
+          <div class="relative z-10 max-w-2xl space-y-6">
+            <span
+              class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-nba-accent/10 border border-nba-accent/30 text-nba-accent uppercase tracking-widest"
+            >
+              <i class="fa-solid fa-fire text-nba-gold"></i> Thư viện bóng rổ
+              chuyên nghiệp
+            </span>
+            <h1
+              class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight"
+            >
+              NÂNG CẤP TƯ DUY &amp;
+              <span class="gradient-text">KỸ NĂNG NBA</span>
+            </h1>
+            <p class="text-gray-400 text-base sm:text-lg leading-relaxed">
+              Khám phá bí kíp dẫn bóng của Kyrie, khả năng ném 3P của Stephen
+              Curry, tư duy lãnh đạo của LeBron và hệ thống chiến thuật chuyên
+              nghiệp đỉnh cao.
+            </p>
+            <div class="flex flex-wrap gap-4 pt-2">
+              <button
+                onclick="switchTab('skills')"
+                class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-nba-accent to-nba-red text-white font-bold hover:opacity-90 transition-all flex items-center gap-2 shadow-lg shadow-nba-accent/25"
+              >
+                <i class="fa-solid fa-play"></i> Bắt đầu luyện tập
+              </button>
+              <button
+                onclick="switchTab('board')"
+                class="px-6 py-3.5 rounded-xl bg-nba-card border border-nba-border text-gray-200 font-bold hover:bg-nba-border transition-all flex items-center gap-2"
+              >
+                <i class="fa-solid fa-chess-board"></i> Thử Sa bàn 2D
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div
+            class="bg-nba-card p-5 rounded-2xl border border-nba-border text-center hover:border-nba-accent/50 transition-all"
+          >
+            <div class="text-3xl font-black text-nba-accent mb-1">50+</div>
+            <div
+              class="text-xs text-gray-400 font-medium uppercase tracking-wider"
+            >
+              Bài Tập Kỹ Năng
+            </div>
+          </div>
+          <div
+            class="bg-nba-card p-5 rounded-2xl border border-nba-border text-center hover:border-nba-accent/50 transition-all"
+          >
+            <div class="text-3xl font-black text-nba-gold mb-1">12+</div>
+            <div
+              class="text-xs text-gray-400 font-medium uppercase tracking-wider"
+            >
+              Sơ Đồ Chiến Thuật
+            </div>
+          </div>
+          <div
+            class="bg-nba-card p-5 rounded-2xl border border-nba-border text-center hover:border-nba-accent/50 transition-all"
+          >
+            <div class="text-3xl font-black text-blue-400 mb-1">6 LEGENDS</div>
+            <div
+              class="text-xs text-gray-400 font-medium uppercase tracking-wider"
+            >
+              Bí Quyết Ngôi Sao
+            </div>
+          </div>
+          <div
+            class="bg-nba-card p-5 rounded-2xl border border-nba-border text-center hover:border-nba-accent/50 transition-all"
+          >
+            <div class="text-3xl font-black text-emerald-400 mb-1">
+              2D BOARD
+            </div>
+            <div
+              class="text-xs text-gray-400 font-medium uppercase tracking-wider"
+            >
+              Vẽ Tương Tác
+            </div>
+          </div>
+        </div>
+
+        <!-- Highlights Grid -->
+        <div>
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-white">Chủ Đề Nổi Bật</h2>
+              <p class="text-sm text-gray-400">
+                Được xem nhiều nhất bởi các baller
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div
+              onclick="switchTab('stars')"
+              class="group bg-nba-card rounded-2xl border border-nba-border overflow-hidden cursor-pointer hover:border-nba-gold transition-all duration-300"
+            >
+              <div
+                class="h-48 bg-gradient-to-t from-nba-card to-yellow-950/40 relative p-6 flex flex-col justify-between"
+              >
+                <span
+                  class="self-start px-2.5 py-1 rounded-md text-xs font-bold bg-nba-gold/20 text-nba-gold border border-nba-gold/30"
+                  >Huyền Thoại</span
+                >
+                <i
+                  class="fa-solid fa-crown text-6xl text-nba-gold/20 absolute right-4 bottom-4 group-hover:scale-110 transition-transform"
+                ></i>
+                <div>
+                  <h3
+                    class="text-xl font-bold text-white group-hover:text-nba-gold transition-colors"
+                  >
+                    Tư Duy Mamba Mentality
+                  </h3>
+                  <p class="text-xs text-gray-400 mt-1">
+                    Kobe Bryant &amp; Giới hạn bản thân
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              onclick="switchTab('tactics')"
+              class="group bg-nba-card rounded-2xl border border-nba-border overflow-hidden cursor-pointer hover:border-nba-accent transition-all duration-300"
+            >
+              <div
+                class="h-48 bg-gradient-to-t from-nba-card to-orange-950/40 relative p-6 flex flex-col justify-between"
+              >
+                <span
+                  class="self-start px-2.5 py-1 rounded-md text-xs font-bold bg-nba-accent/20 text-nba-accent border border-nba-accent/30"
+                  >Chiến Thuật Cốt Lõi</span
+                >
+                <i
+                  class="fa-solid fa-diagram-project text-6xl text-nba-accent/20 absolute right-4 bottom-4 group-hover:scale-110 transition-transform"
+                ></i>
+                <div>
+                  <h3
+                    class="text-xl font-bold text-white group-hover:text-nba-accent transition-colors"
+                  >
+                    Pick &amp; Roll Đỉnh Cao
+                  </h3>
+                  <p class="text-xs text-gray-400 mt-1">
+                    Cách đọc &amp; xé rào mọi hàng thủ
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              onclick="switchTab('skills')"
+              class="group bg-nba-card rounded-2xl border border-nba-border overflow-hidden cursor-pointer hover:border-blue-500 transition-all duration-300"
+            >
+              <div
+                class="h-48 bg-gradient-to-t from-nba-card to-blue-950/40 relative p-6 flex flex-col justify-between"
+              >
+                <span
+                  class="self-start px-2.5 py-1 rounded-md text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                  >Kỹ Năng Cá Nhân</span
+                >
+                <i
+                  class="fa-solid fa-bullseye text-6xl text-blue-500/20 absolute right-4 bottom-4 group-hover:scale-110 transition-transform"
+                ></i>
+                <div>
+                  <h3
+                    class="text-xl font-bold text-white group-hover:text-blue-400 transition-colors"
+                  >
+                    Cơ Chế Ném 3 Điểm
+                  </h3>
+                  <p class="text-xs text-gray-400 mt-1">
+                    Bí quyết Release mượt như Curry
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-skills" class="hidden space-y-8">
+        <div
+          class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-nba-border pb-6"
+        >
+          <div>
+            <h2 class="text-3xl font-black text-white">
+              Thư Viện Kỹ Năng (Skill Library)
+            </h2>
+            <p class="text-gray-400 text-sm mt-1">
+              Luyện tập từ nền tảng tới các kỹ thuật nâng cao dành cho mọi vị
+              trí
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2" id="skill-filter-container">
+            <button
+              onclick="filterSkills('all')"
+              class="skill-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-nba-accent text-white"
+            >
+              Tất cả
+            </button>
+            <button
+              onclick="filterSkills('shooting')"
+              class="skill-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-nba-card border border-nba-border text-gray-300 hover:bg-nba-border"
+            >
+              Ném bóng (Shooting)
+            </button>
+            <button
+              onclick="filterSkills('dribbling')"
+              class="skill-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-nba-card border border-nba-border text-gray-300 hover:bg-nba-border"
+            >
+              Dẫn bóng (Dribbling)
+            </button>
+            <button
+              onclick="filterSkills('defense')"
+              class="skill-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-nba-card border border-nba-border text-gray-300 hover:bg-nba-border"
+            >
+              Phòng thủ (Defense)
+            </button>
+            <button
+              onclick="filterSkills('passing')"
+              class="skill-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-nba-card border border-nba-border text-gray-300 hover:bg-nba-border"
+            >
+              Chuyền bóng (Passing)
+            </button>
+          </div>
+        </div>
+
+        <div
+          id="skills-grid"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          <div
+            class="bg-nba-card border border-nba-border rounded-2xl p-6 flex flex-col justify-between group"
+          >
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div
+                  class="w-10 h-10 rounded-xl bg-nba-accent/10 border border-nba-accent/30 text-nba-accent flex items-center justify-center"
+                >
+                  <i class="fa-solid fa-bullseye"></i>
+                </div>
+                <span
+                  class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-nba-dark border border-nba-border text-nba-gold"
+                  >Nâng cao</span
+                >
+              </div>
+              <div>
+                <h3
+                  class="text-lg font-bold text-white group-hover:text-nba-accent transition-colors"
+                >
+                  Cơ Chế Release &amp; Dip Bóng Nhanh
+                </h3>
+                <span class="text-xs text-gray-500 font-medium"
+                  >Stephen Curry Style</span
+                >
+                <p class="text-xs text-gray-400 mt-2 line-clamp-2">
+                  Tối ưu hóa điểm thả bóng, nhịp nhảy một thì (One-Motion Shot)
+                  giúp tăng tốc độ ra tay cực nhanh.
+                </p>
+              </div>
+            </div>
+            <button
+              onclick="openSkillModal('s1')"
+              class="mt-6 w-full py-2.5 rounded-xl bg-nba-dark border border-nba-border text-xs font-bold text-gray-200 hover:bg-nba-accent hover:border-nba-accent hover:text-white transition-all flex items-center justify-center gap-2"
+            >
+              Xem Bài Tập <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+          <div
+            class="bg-nba-card border border-nba-border rounded-2xl p-6 flex flex-col justify-between group"
+          >
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div
+                  class="w-10 h-10 rounded-xl bg-nba-accent/10 border border-nba-accent/30 text-nba-accent flex items-center justify-center"
+                >
+                  <i class="fa-solid fa-wind"></i>
+                </div>
+                <span
+                  class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-nba-dark border border-nba-border text-nba-gold"
+                  >Trung cấp</span
+                >
+              </div>
+              <div>
+                <h3
+                  class="text-lg font-bold text-white group-hover:text-nba-accent transition-colors"
+                >
+                  Crossover Chuyển Hướng In-and-Out
+                </h3>
+                <span class="text-xs text-gray-500 font-medium"
+                  >Kyrie Irving Style</span
+                >
+                <p class="text-xs text-gray-400 mt-2 line-clamp-2">
+                  Đánh lừa hướng di chuyển của đối phương bằng động tác giả cơ
+                  thể kết hợp nhấp bóng.
+                </p>
+              </div>
+            </div>
+            <button
+              onclick="openSkillModal('s2')"
+              class="mt-6 w-full py-2.5 rounded-xl bg-nba-dark border border-nba-border text-xs font-bold text-gray-200 hover:bg-nba-accent hover:border-nba-accent hover:text-white transition-all flex items-center justify-center gap-2"
+            >
+              Xem Bài Tập <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+          <div
+            class="bg-nba-card border border-nba-border rounded-2xl p-6 flex flex-col justify-between group"
+          >
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div
+                  class="w-10 h-10 rounded-xl bg-nba-accent/10 border border-nba-accent/30 text-nba-accent flex items-center justify-center"
+                >
+                  <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <span
+                  class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-nba-dark border border-nba-border text-nba-gold"
+                  >Cơ bản</span
+                >
+              </div>
+              <div>
+                <h3
+                  class="text-lg font-bold text-white group-hover:text-nba-accent transition-colors"
+                >
+                  Tư Thế Phòng Thủ Tháp (On-Ball Defense)
+                </h3>
+                <span class="text-xs text-gray-500 font-medium"
+                  >Kawhi Leonard Style</span
+                >
+                <p class="text-xs text-gray-400 mt-2 line-clamp-2">
+                  Hạ thấp trọng tâm, di chuyển bước trượt (Slide step) duy trì
+                  khoảng cách và che chắn tầm nhìn đối thủ.
+                </p>
+              </div>
+            </div>
+            <button
+              onclick="openSkillModal('s3')"
+              class="mt-6 w-full py-2.5 rounded-xl bg-nba-dark border border-nba-border text-xs font-bold text-gray-200 hover:bg-nba-accent hover:border-nba-accent hover:text-white transition-all flex items-center justify-center gap-2"
+            >
+              Xem Bài Tập <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+          <div
+            class="bg-nba-card border border-nba-border rounded-2xl p-6 flex flex-col justify-between group"
+          >
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div
+                  class="w-10 h-10 rounded-xl bg-nba-accent/10 border border-nba-accent/30 text-nba-accent flex items-center justify-center"
+                >
+                  <i class="fa-solid fa-paper-plane"></i>
+                </div>
+                <span
+                  class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-nba-dark border border-nba-border text-nba-gold"
+                  >Trung cấp</span
+                >
+              </div>
+              <div>
+                <h3
+                  class="text-lg font-bold text-white group-hover:text-nba-accent transition-colors"
+                >
+                  Chuyền Đất Đột Phá (Pocket Pass)
+                </h3>
+                <span class="text-xs text-gray-500 font-medium"
+                  >LeBron James Style</span
+                >
+                <p class="text-xs text-gray-400 mt-2 line-clamp-2">
+                  Đường chuyền nảy đất luồn qua khe hở của 2 hậu vệ phòng thủ
+                  trong tình huống Pick and Roll.
+                </p>
+              </div>
+            </div>
+            <button
+              onclick="openSkillModal('s4')"
+              class="mt-6 w-full py-2.5 rounded-xl bg-nba-dark border border-nba-border text-xs font-bold text-gray-200 hover:bg-nba-accent hover:border-nba-accent hover:text-white transition-all flex items-center justify-center gap-2"
+            >
+              Xem Bài Tập <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-tactics" class="hidden space-y-8">
+        <div class="border-b border-nba-border pb-6">
+          <h2 class="text-3xl font-black text-white">
+            Thư Viện Chiến Thuật (Playbook)
+          </h2>
+          <p class="text-gray-400 text-sm mt-1">
+            Phân tích hệ thống tấn công, phòng thủ và di chuyển chiến thuật kinh
+            điển
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div class="lg:col-span-1 space-y-3" id="tactics-list">
+            <button
+              class="w-full text-left p-4 rounded-xl border transition-all bg-nba-accent/10 border-nba-accent text-white shadow-lg"
+            >
+              <span
+                class="text-xs font-bold px-2 py-0.5 rounded bg-nba-dark text-nba-gold border border-nba-border"
+                >Tấn Công</span
+              >
+              <h4 class="font-bold text-sm mt-2 text-white">
+                Pick &amp; Roll (Yểm Trợ &amp; Băng Vào)
+              </h4></button
+            ><button
+              class="w-full text-left p-4 rounded-xl border transition-all bg-nba-card border-nba-border text-gray-400 hover:border-gray-600"
+            >
+              <span
+                class="text-xs font-bold px-2 py-0.5 rounded bg-nba-dark text-nba-gold border border-nba-border"
+                >Phòng Thủ</span
+              >
+              <h4 class="font-bold text-sm mt-2 text-white">
+                Zone Defense 2-3 (Phòng Thủ Liên Minh)
+              </h4>
+            </button>
+          </div>
+          <div
+            class="lg:col-span-2 bg-nba-card border border-nba-border rounded-2xl p-6 sm:p-8 space-y-6"
+            id="tactic-detail-panel"
+          >
+            <h3 class="text-2xl font-black text-white">
+              Pick &amp; Roll (Yểm Trợ &amp; Băng Vào)
+            </h3>
+            <p class="text-sm text-gray-300">
+              Trung phong (C/PF) di chuyển lên lập dốc/yểm trợ (Screen) chắn
+              người phòng thủ của hậu vệ cầm bóng (PG/SG). Hậu vệ tràn qua màng
+              chắn để dứt điểm hoặc chuyền cho trung phong đang cuộn (Roll) vào
+              rổ.
+            </p>
+            <div class="space-y-2 pt-4">
+              <div
+                class="p-3 bg-nba-dark rounded-xl border border-nba-border text-xs text-gray-200"
+              >
+                1. PG gọi C lên đặt màng chắn phía ngoài vạch 3 điểm.
+              </div>
+              <div
+                class="p-3 bg-nba-dark rounded-xl border border-nba-border text-xs text-gray-200"
+              >
+                2. PG dẫn bóng sát qua vai của C để cắt đuôi người phòng thủ.
+              </div>
+              <div
+                class="p-3 bg-nba-dark rounded-xl border border-nba-border text-xs text-gray-200"
+              >
+                3. C lập tức xoay lưng cuộn xuống hướng vành rổ nhận đường
+                chuyền.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-stars" class="hidden space-y-8">
+        <div class="border-b border-nba-border pb-6">
+          <h2 class="text-3xl font-black text-white">
+            Góc Kinh Nghiệm Ngôi Sao NBA
+          </h2>
+          <p class="text-gray-400 text-sm mt-1">
+            Lời khuyên, tư duy thi đấu đỉnh cao và tuyệt kỹ đăng ký độc quyền từ
+            các huyền thoại
+          </p>
+        </div>
+
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          id="stars-grid"
+        >
+          <div
+            class="bg-nba-card border border-nba-border rounded-2xl overflow-hidden flex flex-col justify-between"
+          >
+            <div
+              class="h-28 bg-gradient-to-br from-yellow-600/30 to-blue-900/40 p-5"
+            >
+              <h3 class="text-xl font-black text-white">Stephen Curry</h3>
+              <p class="text-xs text-nba-gold font-medium">
+                Sát Thủ 3 Điểm Vĩ Đại Nhất
+              </p>
+            </div>
+            <div class="p-5 space-y-3">
+              <blockquote class="text-xs italic text-gray-300">
+                "Tôi chưa bao giờ lo lắng về cú ném tiếp theo vì tôi đã ném hàng
+                ngàn lần trong phòng tập."
+              </blockquote>
+              <span
+                class="text-xs font-bold text-white bg-nba-dark px-2.5 py-1 rounded-lg border border-nba-border inline-block"
+                >Quick Release &amp; Off-ball Movement</span
+              >
+            </div>
+          </div>
+          <div
+            class="bg-nba-card border border-nba-border rounded-2xl overflow-hidden flex flex-col justify-between"
+          >
+            <div
+              class="h-28 bg-gradient-to-br from-purple-900/40 to-yellow-600/30 p-5"
+            >
+              <h3 class="text-xl font-black text-white">Kobe Bryant</h3>
+              <p class="text-xs text-nba-gold font-medium">Mamba Mentality</p>
+            </div>
+            <div class="p-5 space-y-3">
+              <blockquote class="text-xs italic text-gray-300">
+                "Tất cả mọi sự thất bại, nghi ngờ đều là cơ hội để tôi trỗi
+                dậy."
+              </blockquote>
+              <span
+                class="text-xs font-bold text-white bg-nba-dark px-2.5 py-1 rounded-lg border border-nba-border inline-block"
+                >Fadeaway &amp; Footwork tinh tế</span
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-board" class="hidden space-y-6">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-nba-border pb-6"
+        >
+          <div>
+            <h2 class="text-3xl font-black text-white">
+              Sa Bàn Chiến Thuật 2D
+            </h2>
+            <p class="text-gray-400 text-sm mt-1">
+              Kéo thả vị trí cầu thủ, vẽ đường di chuyển / chuyền bóng để thiết
+              kế bài đánh
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button
+              onclick="clearCanvas()"
+              class="px-3.5 py-2 rounded-xl bg-red-600/20 border border-red-500/40 text-red-400 text-xs font-bold hover:bg-red-600/30"
+            >
+              <i class="fa-solid fa-trash-can mr-1"></i> Xóa Nét Vẽ
+            </button>
+            <button
+              onclick="resetBoardPositions()"
+              class="px-3.5 py-2 rounded-xl bg-nba-border text-gray-200 text-xs font-bold hover:bg-gray-700"
+            >
+              <i class="fa-solid fa-rotate-right mr-1"></i> Đặt Lại Vị Trí
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div
+            class="lg:col-span-1 bg-nba-card border border-nba-border rounded-2xl p-5 space-y-6"
+          >
+            <div>
+              <label
+                class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-3"
+                >Công Cụ Vẽ</label
+              >
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  onclick="setDrawTool('line')"
+                  id="tool-line"
+                  class="tool-btn px-3 py-2.5 rounded-xl border border-nba-accent bg-nba-accent/20 text-nba-accent text-xs font-bold flex items-center justify-center gap-2"
+                >
+                  <i class="fa-solid fa-arrow-right"></i> Nét Chạy
+                </button>
+                <button
+                  onclick="setDrawTool('pass')"
+                  id="tool-pass"
+                  class="tool-btn px-3 py-2.5 rounded-xl border border-nba-border bg-nba-dark text-gray-300 text-xs font-bold flex items-center justify-center gap-2 hover:bg-nba-border"
+                >
+                  <i class="fa-solid fa-ellipsis"></i> Đường Chuyền
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label
+                class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-3"
+                >Màu Bút Vẽ</label
+              >
+              <div class="flex items-center gap-3">
+                <button
+                  onclick="setDrawColor('#FF4500')"
+                  class="w-8 h-8 rounded-full bg-[#FF4500] ring-2 ring-white/50 focus:scale-110 transition-transform"
+                ></button>
+                <button
+                  onclick="setDrawColor('#3B82F6')"
+                  class="w-8 h-8 rounded-full bg-[#3B82F6] focus:scale-110 transition-transform"
+                ></button>
+                <button
+                  onclick="setDrawColor('#10B981')"
+                  class="w-8 h-8 rounded-full bg-[#10B981] focus:scale-110 transition-transform"
+                ></button>
+                <button
+                  onclick="setDrawColor('#F59E0B')"
+                  class="w-8 h-8 rounded-full bg-[#F59E0B] focus:scale-110 transition-transform"
+                ></button>
+              </div>
+            </div>
+
+            <div class="pt-4 border-t border-nba-border">
+              <h4 class="text-xs font-bold text-gray-300 mb-2">
+                <i class="fa-solid fa-circle-info text-nba-gold mr-1"></i> Hướng
+                Dẫn:
+              </h4>
+              <ul class="text-xs text-gray-400 space-y-1.5 list-disc pl-4">
+                <li>
+                  Kéo thả <b>Tấn công (O)</b>, <b>Phòng thủ (X)</b> hoặc
+                  <b>Bóng</b>.
+                </li>
+                <li>
+                  Nhấn giữ &amp; kéo chuột để vẽ hướng chạy / chuyền bóng.
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div
+            class="lg:col-span-3 bg-nba-card border border-nba-border rounded-2xl p-4 overflow-hidden flex flex-col items-center"
+          >
+            <div
+              id="court-container"
+              class="relative court-bg border-2 border-slate-600 rounded-xl w-full max-w-[700px] h-[450px] overflow-hidden select-none touch-none"
+            >
+              <svg
+                class="absolute inset-0 w-full h-full pointer-events-none stroke-slate-500/50 fill-none"
+                stroke-width="2"
+              >
+                <line x1="0" y1="50%" x2="100%" y2="50%"></line>
+                <circle cx="50%" cy="50%" r="45"></circle>
+                <rect
+                  x="30%"
+                  y="0"
+                  width="40%"
+                  height="22%"
+                  class="fill-slate-800/30"
+                ></rect>
+                <circle cx="50%" cy="22%" r="40"></circle>
+                <circle
+                  cx="50%"
+                  cy="8%"
+                  r="10"
+                  class="stroke-nba-gold stroke-2"
+                ></circle>
+                <line
+                  x1="42%"
+                  y1="0"
+                  x2="58%"
+                  y2="0"
+                  stroke-width="4"
+                  class="stroke-nba-red"
+                ></line>
+                <rect
+                  x="30%"
+                  y="78%"
+                  width="40%"
+                  height="22%"
+                  class="fill-slate-800/30"
+                ></rect>
+                <circle cx="50%" cy="78%" r="40"></circle>
+                <circle
+                  cx="50%"
+                  cy="92%"
+                  r="10"
+                  class="stroke-nba-gold stroke-2"
+                ></circle>
+                <line
+                  x1="42%"
+                  y1="100%"
+                  x2="58%"
+                  y2="100%"
+                  stroke-width="4"
+                  class="stroke-nba-red"
+                ></line>
+              </svg>
+
+              <canvas
+                id="tactical-canvas"
+                class="absolute inset-0 w-full h-full cursor-crosshair z-10"
+                width="0"
+                height="0"
+              ></canvas>
+
+              <div
+                id="tokens-layer"
+                class="absolute inset-0 z-20 pointer-events-none"
+              >
+                <div
+                  class="draggable-token pointer-events-auto absolute w-8 h-8 rounded-full bg-nba-accent text-white font-black text-xs flex items-center justify-center border-2 border-white shadow-lg cursor-grab active:cursor-grabbing"
+                  style="top: 55%; left: 47%"
+                  data-id="o1"
+                >
+                  O1
+                </div>
+                <div
+                  class="draggable-token pointer-events-auto absolute w-8 h-8 rounded-full bg-nba-accent text-white font-black text-xs flex items-center justify-center border-2 border-white shadow-lg cursor-grab active:cursor-grabbing"
+                  style="top: 65%; left: 20%"
+                  data-id="o2"
+                >
+                  O2
+                </div>
+                <div
+                  class="draggable-token pointer-events-auto absolute w-8 h-8 rounded-full bg-nba-accent text-white font-black text-xs flex items-center justify-center border-2 border-white shadow-lg cursor-grab active:cursor-grabbing"
+                  style="top: 65%; left: 75%"
+                  data-id="o3"
+                >
+                  O3
+                </div>
+
+                <div
+                  class="draggable-token pointer-events-auto absolute w-8 h-8 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center border-2 border-white shadow-lg cursor-grab active:cursor-grabbing"
+                  style="top: 45%; left: 47%"
+                  data-id="x1"
+                >
+                  X1
+                </div>
+                <div
+                  class="draggable-token pointer-events-auto absolute w-8 h-8 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center border-2 border-white shadow-lg cursor-grab active:cursor-grabbing"
+                  style="top: 58%; left: 25%"
+                  data-id="x2"
+                >
+                  X2
+                </div>
+                <div
+                  class="draggable-token pointer-events-auto absolute w-8 h-8 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center border-2 border-white shadow-lg cursor-grab active:cursor-grabbing"
+                  style="top: 58%; left: 70%"
+                  data-id="x3"
+                >
+                  X3
+                </div>
+
+                <div
+                  class="draggable-token pointer-events-auto absolute w-7 h-7 rounded-full bg-nba-gold text-black text-xs flex items-center justify-center border border-white shadow-md cursor-grab active:cursor-grabbing"
+                  style="top: 60%; left: 48%"
+                  data-id="ball"
+                >
+                  <i class="fa-solid fa-basketball text-xs"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-routine" class="hidden space-y-8">
+        <div
+          class="border-b border-nba-border pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
+          <div>
+            <h2 class="text-3xl font-black text-white">
+              Chế Độ Luyện Tập Hàng Ngày
+            </h2>
+            <p class="text-gray-400 text-sm mt-1">
+              Danh sách kiểm tra bài tập để duy trì phong độ và tiến bộ liên tục
+            </p>
+          </div>
+          <div
+            class="bg-nba-card border border-nba-border px-4 py-2 rounded-xl flex items-center gap-3"
+          >
+            <span class="text-xs text-gray-400 font-medium"
+              >Tiến độ hôm nay:</span
+            >
+            <div
+              class="w-32 bg-nba-dark rounded-full h-3 overflow-hidden border border-nba-border"
+            >
+              <div
+                id="routine-progress-bar"
+                class="bg-gradient-to-r from-nba-accent to-nba-gold h-full w-0 transition-all duration-500"
+                style="width: 0%"
+              ></div>
+            </div>
+            <span
+              id="routine-progress-text"
+              class="text-xs font-extrabold text-nba-gold"
+              >0%</span
+            >
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div
+            class="bg-nba-card border border-nba-border rounded-2xl p-6 space-y-4"
+          >
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                <i class="fa-solid fa-fire-flame-curved text-nba-accent"></i> 1.
+                Khởi Động
+              </h3>
+              <span class="text-xs text-gray-400">15 Phút</span>
+            </div>
+            <div class="space-y-3" id="routine-warmup">
+              <label
+                class="flex items-center gap-3 p-3 bg-nba-dark rounded-xl border border-nba-border cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  onchange="toggleRoutineItem('w1')"
+                  class="w-4 h-4 rounded accent-nba-accent"
+                />
+                <span class="text-xs text-gray-300 font-medium"
+                  >Xoay khớp &amp; Giãn cơ động</span
+                > </label
+              ><label
+                class="flex items-center gap-3 p-3 bg-nba-dark rounded-xl border border-nba-border cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  onchange="toggleRoutineItem('w2')"
+                  class="w-4 h-4 rounded accent-nba-accent"
+                />
+                <span class="text-xs text-gray-300 font-medium"
+                  >Nhảy dây 5 phút</span
+                >
+              </label>
+            </div>
+          </div>
+
+          <div
+            class="bg-nba-card border border-nba-border rounded-2xl p-6 space-y-4"
+          >
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                <i class="fa-solid fa-bullseye text-nba-gold"></i> 2. Bài Tập Kỹ
+                Thuật
+              </h3>
+              <span class="text-xs text-gray-400">45 Phút</span>
+            </div>
+            <div class="space-y-3" id="routine-drills">
+              <label
+                class="flex items-center gap-3 p-3 bg-nba-dark rounded-xl border border-nba-border cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  onchange="toggleRoutineItem('d1')"
+                  class="w-4 h-4 rounded accent-nba-accent"
+                />
+                <span class="text-xs text-gray-300 font-medium"
+                  >Form Shooting cận rổ (50 quả)</span
+                > </label
+              ><label
+                class="flex items-center gap-3 p-3 bg-nba-dark rounded-xl border border-nba-border cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  onchange="toggleRoutineItem('d2')"
+                  class="w-4 h-4 rounded accent-nba-accent"
+                />
+                <span class="text-xs text-gray-300 font-medium"
+                  >Ném Mid-range 5 vị trí (50 quả)</span
+                >
+              </label>
+            </div>
+          </div>
+
+          <div
+            class="bg-nba-card border border-nba-border rounded-2xl p-6 space-y-4"
+          >
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                <i class="fa-solid fa-dumbbell text-blue-400"></i> 3. Thể Lực
+                &amp; Hồi Phục
+              </h3>
+              <span class="text-xs text-gray-400">20 Phút</span>
+            </div>
+            <div class="space-y-3" id="routine-conditioning">
+              <label
+                class="flex items-center gap-3 p-3 bg-nba-dark rounded-xl border border-nba-border cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  onchange="toggleRoutineItem('c1')"
+                  class="w-4 h-4 rounded accent-nba-accent"
+                />
+                <span class="text-xs text-gray-300 font-medium"
+                  >Chạy nước rút Suicide Run (3 hiệp)</span
+                >
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal 1: Detail Skill/Star Modal -->
+    <div
+      id="detail-modal"
+      class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4"
+    >
+      <div
+        class="bg-nba-card border border-nba-border w-full max-w-2xl rounded-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto custom-scrollbar relative"
+      >
+        <button
+          onclick="closeModal('detail-modal')"
+          class="absolute top-4 right-4 text-gray-400 hover:text-white p-2 text-lg"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div id="modal-content"></div>
+      </div>
+    </div>
+
+    <!-- Modal 2: Source Code Modal -->
+    <div
+      id="source-code-modal"
+      class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4"
+    >
+      <div
+        class="bg-nba-card border border-nba-border w-full max-w-4xl rounded-2xl p-6 space-y-4 max-h-[90vh] flex flex-col relative"
+      >
+        <div
+          class="flex items-center justify-between border-b border-nba-border pb-3"
+        >
+          <div class="flex items-center gap-2 text-white font-bold text-base">
+            <i class="fa-solid fa-code text-nba-accent"></i> Mã Nguồn Trang Web
+            (Full Source Code)
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              onclick="copyFullWebsiteCode()"
+              class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5"
+            >
+              <i class="fa-regular fa-copy"></i> Copy Code
+            </button>
+            <button
+              onclick="closeModal('source-code-modal')"
+              class="text-gray-400 hover:text-white p-1 text-lg"
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400">
+          Bạn có thể bấm nút "Copy Code" để lưu lại toàn bộ file HTML/CSS/JS duy
+          nhất này.
+        </p>
+        <textarea
+          id="source-code-textarea"
+          readonly=""
+          class="w-full flex-grow bg-nba-dark border border-nba-border rounded-xl p-4 font-mono text-xs text-emerald-400 focus:outline-none resize-none custom-scrollbar select-all"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Toast Notification for Copy Alert -->
+    <div
+      id="copy-toast"
+      class="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white font-bold text-xs px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-300 translate-y-4"
+    >
+      <i class="fa-solid fa-circle-check text-lg"></i>
+      <span>Đã sao chép toàn bộ mã nguồn vào Clipboard!</span>
+    </div>
+
+    <!-- Floating Copy Button on Bottom Right -->
+    <button
+      onclick="copyFullWebsiteCode()"
+      class="fixed bottom-6 left-6 z-40 px-4 py-3 rounded-full bg-gradient-to-r from-nba-accent to-nba-red text-white font-bold text-xs flex items-center gap-2 shadow-2xl shadow-nba-accent/50 border border-white/20 hover:scale-105 transition-transform"
+    >
+      <i class="fa-solid fa-copy text-base"></i>
+      <span>Copy Code Trang Web</span>
+    </button>
+
+    <!-- Footer -->
+    <footer class="bg-nba-dark border-t border-nba-border py-8 mt-12">
+      <div class="max-w-7xl mx-auto px-4 text-center space-y-3">
+        <div
+          class="flex items-center justify-center gap-2 text-lg font-black text-white"
+        >
+          <i class="fa-solid fa-basketball text-nba-accent"></i> NBA MASTERCLASS
+          VIETNAM
+        </div>
+        <p class="text-xs text-gray-400">
+          Nền tảng tổng hợp kiến thức, kỹ năng và chiến thuật bóng rổ hàng đầu
+          dành cho cộng đồng Baller Việt Nam.
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      // DATA SOURCES
+      const skillsData = [
+        {
+          id: "s1",
+          category: "shooting",
+          title: "Cơ Chế Release & Dip Bóng Nhanh",
+          level: "Nâng cao",
+          author: "Stephen Curry Style",
+          icon: "fa-bullseye",
+          shortDesc:
+            "Tối ưu hóa điểm thả bóng, nhịp nhảy một thì (One-Motion Shot) giúp tăng tốc độ ra tay cực nhanh.",
+          steps: [
+            "Bắt đầu hạ thấp trọng tâm và dip bóng xuống hông ngay khi nhận đường chuyền.",
+            "Đẩy bóng đi lên theo đường thẳng không nghỉ (One continuous motion).",
+            "Cổ tay thả lỏng, chỉ ngón tay trỏ và giữa tác động lực cuối cùng lên bóng.",
+          ],
+          tips: "Tập trung vào nhịp chân (1-2 step) chuẩn bị trước khi bóng chạm tay.",
+        },
+        {
+          id: "s2",
+          category: "dribbling",
+          title: "Crossover Chuyển Hướng In-and-Out",
+          level: "Trung cấp",
+          author: "Kyrie Irving Style",
+          icon: "fa-wind",
+          shortDesc:
+            "Đánh lừa hướng di chuyển của đối phương bằng động tác giả cơ thể kết hợp nhấp bóng.",
+          steps: [
+            "Dẫn bóng mạnh về phía trước như chuẩn bị bứt tốc.",
+            "Dùng một tay đưa bóng lượn hình bán nguyệt vào trong rồi giật ra ngoài.",
+            "Nghiêng vai và mắt nhìn về hướng giả để buộc đối thủ di chuyển hông.",
+          ],
+          tips: "Chân cùng bên phải bước nhẹ để tăng tính thuyết phục cho động tác giả.",
+        },
+        {
+          id: "s3",
+          category: "defense",
+          title: "Tư Thế Phòng Thủ Tháp (On-Ball Defense)",
+          level: "Cơ bản",
+          author: "Kawhi Leonard Style",
+          icon: "fa-shield-halved",
+          shortDesc:
+            "Hạ thấp trọng tâm, di chuyển bước trượt (Slide step) duy trì khoảng cách và che chắn tầm nhìn đối thủ.",
+          steps: [
+            "Chân mở rộng hơn vai, mông hạ thấp, hai tay giang rộng tạo diện tích cản trở.",
+            "Luôn nhìn vào hông đối phương chứ không nhìn vào bóng.",
+            "Di chuyển bằng các bước trượt ngang, tuyệt đối không chéo chân.",
+          ],
+          tips: "Dùng tay dắt bóng phía trước để liên tục quấy rối hướng rê của đối phương.",
+        },
+        {
+          id: "s4",
+          category: "passing",
+          title: "Chuyền Đất Đột Phá (Pocket Pass)",
+          level: "Trung cấp",
+          author: "LeBron James Style",
+          icon: "fa-paper-plane",
+          shortDesc:
+            "Đường chuyền nảy đất luồn qua khe hở của 2 hậu vệ phòng thủ trong tình huống Pick and Roll.",
+          steps: [
+            "Thu hút sự chú ý của người phòng thủ bằng động tác đe dọa ném hoặc đột phá.",
+            "Đẩy bóng bằng một tay xuống đất tại vị trí 2/3 khoảng cách tới đồng đội.",
+            "Lực chuyền phải đủ xoáy để bóng nảy lên vừa tầm tay người băng vào.",
+          ],
+          tips: "Thực hiện ngay khi người trung phong rướn người tạo khoảng trống.",
+        },
+      ];
+
+      const tacticsData = [
+        {
+          id: "t1",
+          name: "Pick & Roll (Yểm Trợ & Băng Vào)",
+          type: "Tấn Công",
+          summary:
+            "Chiến thuật phối hợp 2 người phổ biến và hiệu quả nhất bóng rổ hiện đại.",
+          description:
+            "Trung phong (C/PF) di chuyển lên lập dốc/yểm trợ (Screen) chắn người phòng thủ của hậu vệ cầm bóng (PG/SG). Hậu vệ tràn qua màng chắn để dứt điểm hoặc chuyền cho trung phong đang cuộn (Roll) vào rổ.",
+          diagramSteps: [
+            "1. PG gọi C lên đặt màng chắn phía ngoài vạch 3 điểm.",
+            "2. PG dẫn bóng sát qua vai của C để cắt đuôi người phòng thủ.",
+            "3. C lập tức xoay lưng cuộn xuống hướng vành rổ nhận đường chuyền.",
+          ],
+        },
+        {
+          id: "t2",
+          name: "Zone Defense 2-3 (Phòng Thủ Liên Minh)",
+          type: "Phòng Thủ",
+          summary:
+            "Bảo vệ khu vực hình chữ nhật (Key) và hạn chế tối đa đột phá.",
+          description:
+            "Hai hậu vệ bảo vệ khu vực đỉnh 3 điểm và hông, ba cầu thủ cao lớn bảo vệ dưới vành rổ và 2 góc đáy.",
+          diagramSteps: [
+            "1. Hậu vệ trên liên tục di chuyển theo hướng bóng ở đỉnh.",
+            "2. Trung phong cắm chốt giữa khu vực 3 giây để sẵn sàng rebound và block.",
+            "3. Khi bóng sang góc đáy, cầu thủ biên tiến ra bọc lót ngay.",
+          ],
+        },
+      ];
+
+      const starsData = [
+        {
+          id: "star-curry",
+          name: "Stephen Curry",
+          team: "Golden State Warriors",
+          title: "Sát Thủ 3 Điểm Vĩ Đại Nhất",
+          imageBg: "from-yellow-600/30 to-blue-900/40",
+          quote:
+            "Tôi chưa bao giờ lo lắng về cú ném tiếp theo vì tôi đã ném hàng ngàn lần trong phòng tập.",
+          signatureMove: "Quick Release & Off-ball Movement",
+          insights: [
+            "Tập luyện chạy không bóng nhiều hơn là cắm đầu rê bóng.",
+            "Tập trung vào lực đẩy bắt đầu từ gót chân truyền lên hông rồi mới tới cổ tay.",
+            "Duy trì sự tự tin tuyệt đối ngay cả khi vừa ném hụt 5 quả liên tiếp.",
+          ],
+        },
+        {
+          id: "star-kobe",
+          name: "Kobe Bryant",
+          team: "Los Angeles Lakers",
+          title: "Mamba Mentality",
+          imageBg: "from-purple-900/40 to-yellow-600/30",
+          quote:
+            "Tất cả mọi sự thất bại, nghi ngờ đều là cơ hội để tôi trỗi dậy.",
+          signatureMove: "Fadeaway & Footwork tinh tế",
+          insights: [
+            "Nghiên cứu băng hình đối thủ để tìm ra thói quen nhỏ nhất của họ.",
+            "Cơ bản chính là sự khác biệt: Tập đi tập lại 1 động tác đến mức hoàn hảo.",
+            "Sẵn sàng thức dậy lúc 4 giờ sáng để tập luyện khi mọi người còn ngủ.",
+          ],
+        },
+      ];
+
+      const dailyRoutine = {
+        warmup: [
+          { id: "w1", name: "Xoay khớp & Giãn cơ động", done: false },
+          { id: "w2", name: "Nhảy dây 5 phút", done: false },
+        ],
+        drills: [
+          { id: "d1", name: "Form Shooting cận rổ (50 quả)", done: false },
+          { id: "d2", name: "Ném Mid-range 5 vị trí (50 quả)", done: false },
+        ],
+        conditioning: [
+          { id: "c1", name: "Chạy nước rút Suicide Run (3 hiệp)", done: false },
+        ],
+      };
+
+      function copyFullWebsiteCode() {
+        const htmlContent =
+          "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+
+        // Execute Copy using execCommand for better iframe compatibility
+        const tempTextarea = document.createElement("textarea");
+        tempTextarea.value = htmlContent;
+        document.body.appendChild(tempTextarea);
+        tempTextarea.select();
+
+        try {
+          document.execCommand("copy");
+          showToast();
+        } catch (err) {
+          console.error("Không thể sao chép code: ", err);
+        } finally {
+          document.body.removeChild(tempTextarea);
+        }
+      }
+
+      function openSourceCodeModal() {
+        const htmlContent =
+          "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+        document.getElementById("source-code-textarea").value = htmlContent;
+        document.getElementById("source-code-modal").classList.remove("hidden");
+        document.getElementById("source-code-modal").classList.add("flex");
+      }
+
+      function showToast() {
+        const toast = document.getElementById("copy-toast");
+        toast.classList.remove(
+          "opacity-0",
+          "pointer-events-none",
+          "translate-y-4",
+        );
+        toast.classList.add("opacity-100", "translate-y-0");
+
+        setTimeout(() => {
+          toast.classList.add(
+            "opacity-0",
+            "pointer-events-none",
+            "translate-y-4",
+          );
+          toast.classList.remove("opacity-100", "translate-y-0");
+        }, 3000);
+      }
+
+      // NAVIGATION & STATE
+      let activeTab = "home";
+      let currentSkillFilter = "all";
+      let activeTacticId = "t1";
+
+      window.addEventListener("DOMContentLoaded", () => {
+        renderSkills();
+        renderTacticsList();
+        renderTacticDetail(activeTacticId);
+        renderStars();
+        renderRoutine();
+        initTacticalBoard();
+      });
+
+      function switchTab(tabId) {
+        activeTab = tabId;
+        document
+          .querySelectorAll("main > section")
+          .forEach((sec) => sec.classList.add("hidden"));
+        document.getElementById(`tab-${tabId}`).classList.remove("hidden");
+
+        document.querySelectorAll(".nav-btn").forEach((btn) => {
+          btn.classList.remove("text-nba-accent", "bg-nba-border/40");
+          btn.classList.add("text-gray-300");
+        });
+        const activeBtn = document.getElementById(`nav-${tabId}`);
+        if (activeBtn) {
+          activeBtn.classList.add("text-nba-accent", "bg-nba-border/40");
+          activeBtn.classList.remove("text-gray-300");
+        }
+
+        document.getElementById("mobile-menu").classList.add("hidden");
+        if (tabId === "board") setTimeout(resizeCanvas, 100);
+      }
+
+      function toggleMobileMenu() {
+        document.getElementById("mobile-menu").classList.toggle("hidden");
+      }
+
+      function filterSkills(category) {
+        currentSkillFilter = category;
+        renderSkills();
+      }
+
+      function renderSkills() {
+        const container = document.getElementById("skills-grid");
+        container.innerHTML = "";
+        let filtered =
+          currentSkillFilter === "all"
+            ? skillsData
+            : skillsData.filter((s) => s.category === currentSkillFilter);
+
+        filtered.forEach((skill) => {
+          const card = document.createElement("div");
+          card.className =
+            "bg-nba-card border border-nba-border rounded-2xl p-6 flex flex-col justify-between group";
+          card.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-10 h-10 rounded-xl bg-nba-accent/10 border border-nba-accent/30 text-nba-accent flex items-center justify-center">
+                                <i class="fa-solid ${skill.icon}"></i>
+                            </div>
+                            <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-nba-dark border border-nba-border text-nba-gold">${skill.level}</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-nba-accent transition-colors">${skill.title}</h3>
+                            <span class="text-xs text-gray-500 font-medium">${skill.author}</span>
+                            <p class="text-xs text-gray-400 mt-2 line-clamp-2">${skill.shortDesc}</p>
+                        </div>
+                    </div>
+                    <button onclick="openSkillModal('${skill.id}')" class="mt-6 w-full py-2.5 rounded-xl bg-nba-dark border border-nba-border text-xs font-bold text-gray-200 hover:bg-nba-accent hover:border-nba-accent hover:text-white transition-all flex items-center justify-center gap-2">
+                        Xem Bài Tập <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </button>
+                `;
+          container.appendChild(card);
+        });
+      }
+
+      function openSkillModal(skillId) {
+        const skill = skillsData.find((s) => s.id === skillId);
+        if (!skill) return;
+
+        document.getElementById("modal-content").innerHTML = `
+                <div class="space-y-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-nba-accent/20 border border-nba-accent text-nba-accent flex items-center justify-center text-xl">
+                            <i class="fa-solid ${skill.icon}"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-nba-gold uppercase">${skill.level}</span>
+                            <h3 class="text-2xl font-black text-white">${skill.title}</h3>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-300 italic border-l-2 border-nba-accent pl-3 py-1 bg-nba-dark/50">${skill.shortDesc}</p>
+                    <div>
+                        <h4 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider mb-3">Các Bước Thực Hiện:</h4>
+                        <ol class="space-y-2 text-xs text-gray-300">
+                            ${skill.steps.map((step, idx) => `<li class="bg-nba-dark p-3 rounded-xl border border-nba-border"><b>${idx + 1}.</b> ${step}</li>`).join("")}
+                        </ol>
+                    </div>
+                </div>
+            `;
+        document.getElementById("detail-modal").classList.remove("hidden");
+        document.getElementById("detail-modal").classList.add("flex");
+      }
+
+      function closeModal(modalId) {
+        document.getElementById(modalId).classList.add("hidden");
+        document.getElementById(modalId).classList.remove("flex");
+      }
+
+      function renderTacticsList() {
+        const listContainer = document.getElementById("tactics-list");
+        listContainer.innerHTML = "";
+        tacticsData.forEach((tactic) => {
+          const btn = document.createElement("button");
+          btn.onclick = () => selectTactic(tactic.id);
+          btn.className = `w-full text-left p-4 rounded-xl border transition-all ${
+            tactic.id === activeTacticId
+              ? "bg-nba-accent/10 border-nba-accent text-white shadow-lg"
+              : "bg-nba-card border-nba-border text-gray-400 hover:border-gray-600"
+          }`;
+          btn.innerHTML = `
+                    <span class="text-xs font-bold px-2 py-0.5 rounded bg-nba-dark text-nba-gold border border-nba-border">${tactic.type}</span>
+                    <h4 class="font-bold text-sm mt-2 text-white">${tactic.name}</h4>
+                `;
+          listContainer.appendChild(btn);
+        });
+      }
+
+      function selectTactic(tacticId) {
+        activeTacticId = tacticId;
+        renderTacticsList();
+        renderTacticDetail(tacticId);
+      }
+
+      function renderTacticDetail(tacticId) {
+        const tactic = tacticsData.find((t) => t.id === tacticId);
+        if (!tactic) return;
+
+        document.getElementById("tactic-detail-panel").innerHTML = `
+                <h3 class="text-2xl font-black text-white">${tactic.name}</h3>
+                <p class="text-sm text-gray-300">${tactic.description}</p>
+                <div class="space-y-2 pt-4">
+                    ${tactic.diagramSteps.map((step) => `<div class="p-3 bg-nba-dark rounded-xl border border-nba-border text-xs text-gray-200">${step}</div>`).join("")}
+                </div>
+            `;
+      }
+
+      function renderStars() {
+        const container = document.getElementById("stars-grid");
+        container.innerHTML = "";
+        starsData.forEach((star) => {
+          const card = document.createElement("div");
+          card.className =
+            "bg-nba-card border border-nba-border rounded-2xl overflow-hidden flex flex-col justify-between";
+          card.innerHTML = `
+                    <div class="h-28 bg-gradient-to-br ${star.imageBg} p-5">
+                        <h3 class="text-xl font-black text-white">${star.name}</h3>
+                        <p class="text-xs text-nba-gold font-medium">${star.title}</p>
+                    </div>
+                    <div class="p-5 space-y-3">
+                        <blockquote class="text-xs italic text-gray-300">"${star.quote}"</blockquote>
+                        <span class="text-xs font-bold text-white bg-nba-dark px-2.5 py-1 rounded-lg border border-nba-border inline-block">${star.signatureMove}</span>
+                    </div>
+                `;
+          container.appendChild(card);
+        });
+      }
+
+      function renderRoutine() {
+        const renderSection = (items, containerId) => {
+          const container = document.getElementById(containerId);
+          container.innerHTML = "";
+          items.forEach((item) => {
+            const row = document.createElement("label");
+            row.className =
+              "flex items-center gap-3 p-3 bg-nba-dark rounded-xl border border-nba-border cursor-pointer";
+            row.innerHTML = `
+                        <input type="checkbox" ${item.done ? "checked" : ""} onchange="toggleRoutineItem('${item.id}')" class="w-4 h-4 rounded accent-nba-accent">
+                        <span class="text-xs text-gray-300 font-medium ${item.done ? "line-through opacity-50" : ""}">${item.name}</span>
+                    `;
+            container.appendChild(row);
+          });
+        };
+
+        renderSection(dailyRoutine.warmup, "routine-warmup");
+        renderSection(dailyRoutine.drills, "routine-drills");
+        renderSection(dailyRoutine.conditioning, "routine-conditioning");
+        updateRoutineProgress();
+      }
+
+      function toggleRoutineItem(id) {
+        const allItems = [
+          ...dailyRoutine.warmup,
+          ...dailyRoutine.drills,
+          ...dailyRoutine.conditioning,
+        ];
+        const item = allItems.find((i) => i.id === id);
+        if (item) {
+          item.done = !item.done;
+          renderRoutine();
+        }
+      }
+
+      function updateRoutineProgress() {
+        const allItems = [
+          ...dailyRoutine.warmup,
+          ...dailyRoutine.drills,
+          ...dailyRoutine.conditioning,
+        ];
+        const completed = allItems.filter((i) => i.done).length;
+        const percentage = Math.round((completed / allItems.length) * 100);
+
+        document.getElementById("routine-progress-bar").style.width =
+          `${percentage}%`;
+        document.getElementById("routine-progress-text").innerText =
+          `${percentage}%`;
+      }
+
+      // TACTICAL BOARD LOGIC
+      let canvas,
+        ctx,
+        isDrawing = false,
+        drawTool = "line",
+        drawColor = "#FF4500",
+        startX = 0,
+        startY = 0,
+        drawings = [];
+
+      function initTacticalBoard() {
+        canvas = document.getElementById("tactical-canvas");
+        ctx = canvas.getContext("2d");
+        resizeCanvas();
+
+        canvas.addEventListener("mousedown", startDraw);
+        canvas.addEventListener("mousemove", draw);
+        canvas.addEventListener("mouseup", endDraw);
+
+        initDraggables();
+      }
+
+      function resizeCanvas() {
+        if (!canvas) return;
+        const container = document.getElementById("court-container");
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+        redrawCanvas();
+      }
+
+      function setDrawTool(tool) {
+        drawTool = tool;
+      }
+      function setDrawColor(color) {
+        drawColor = color;
+      }
+
+      function startDraw(e) {
+        const rect = canvas.getBoundingClientRect();
+        startX = e.clientX - rect.left;
+        startY = e.clientY - rect.top;
+        isDrawing = true;
+      }
+
+      function draw(e) {
+        if (!isDrawing) return;
+        const rect = canvas.getBoundingClientRect();
+        redrawCanvas();
+        drawShape(
+          startX,
+          startY,
+          e.clientX - rect.left,
+          e.clientY - rect.top,
+          drawTool,
+          drawColor,
+        );
+      }
+
+      function endDraw(e) {
+        if (!isDrawing) return;
+        isDrawing = false;
+        const rect = canvas.getBoundingClientRect();
+        drawings.push({
+          startX,
+          startY,
+          endX: e.clientX - rect.left,
+          endY: e.clientY - rect.top,
+          tool: drawTool,
+          color: drawColor,
+        });
+        redrawCanvas();
+      }
+
+      function drawShape(sx, sy, ex, ey, tool, color) {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        if (tool === "pass") ctx.setLineDash([6, 6]);
+        else ctx.setLineDash([]);
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+      }
+
+      function redrawCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawings.forEach((d) =>
+          drawShape(d.startX, d.startY, d.endX, d.endY, d.tool, d.color),
+        );
+      }
+
+      function clearCanvas() {
+        drawings = [];
+        redrawCanvas();
+      }
+
+      function resetBoardPositions() {
+        const defaults = [
+          { id: "o1", top: "55%", left: "47%" },
+          { id: "o2", top: "65%", left: "20%" },
+          { id: "o3", top: "65%", left: "75%" },
+          { id: "x1", top: "45%", left: "47%" },
+          { id: "x2", top: "58%", left: "25%" },
+          { id: "x3", top: "58%", left: "70%" },
+          { id: "ball", top: "60%", left: "48%" },
+        ];
+        defaults.forEach((item) => {
+          const el = document.querySelector(`[data-id="${item.id}"]`);
+          if (el) {
+            el.style.top = item.top;
+            el.style.left = item.left;
+          }
+        });
+        clearCanvas();
+      }
+
+      function initDraggables() {
+        const tokens = document.querySelectorAll(".draggable-token");
+        const container = document.getElementById("court-container");
+
+        tokens.forEach((token) => {
+          let isDragging = false,
+            offsetX = 0,
+            offsetY = 0;
+
+          const onStart = (clientX, clientY) => {
+            isDragging = true;
+            const rect = token.getBoundingClientRect();
+            offsetX = clientX - rect.left;
+            offsetY = clientY - rect.top;
+          };
+
+          const onMove = (clientX, clientY) => {
+            if (!isDragging) return;
+            const containerRect = container.getBoundingClientRect();
+            token.style.left = `${Math.max(0, Math.min(containerRect.width - 32, clientX - containerRect.left - offsetX))}px`;
+            token.style.top = `${Math.max(0, Math.min(containerRect.height - 32, clientY - containerRect.top - offsetY))}px`;
+          };
+
+          const onEnd = () => {
+            isDragging = false;
+          };
+
+          token.addEventListener("mousedown", (e) => {
+            e.stopPropagation();
+            onStart(e.clientX, e.clientY);
+          });
+          document.addEventListener("mousemove", (e) =>
+            onMove(e.clientX, e.clientY),
+          );
+          document.addEventListener("mouseup", onEnd);
+        });
+      }
+    </script>
+  </body>
+</html>
